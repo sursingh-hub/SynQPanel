@@ -1,0 +1,49 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio Version 18
+VisualStudioVersion = 18.3.11310.294
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SynQPanel.Plugins", "SynQPanel.Plugins\SynQPanel.Plugins.csproj", "{A904FFD0-EC00-DCF3-38BE-51D3D701B8B0}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SynQPanel.Plugins.Loader", "SynQPanel.Plugins.Loader\SynQPanel.Plugins.Loader.csproj", "{C21EDF7C-236D-2FDB-41CA-0FAA1F2F56B4}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SynQPanel.Plugins.Simulator", "SynQPanel.Plugins.Simulator\SynQPanel.Plugins.Simulator.csproj", "{55D5F045-4C09-E960-2935-7BE1B5C6D8D2}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SynQPanel.Extras", "SynQPanel.Extras\SynQPanel.Extras.csproj", "{36C862FC-F8BE-2F26-22CC-17A9FB62E368}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SynQPanel", "SynQPanel\SynQPanel.csproj", "{B1EB1409-F33B-F8CD-8B02-A5AF72E092A7}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|x64 = Debug|x64
+		Release|x64 = Release|x64
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{A904FFD0-EC00-DCF3-38BE-51D3D701B8B0}.Debug|x64.ActiveCfg = Debug|x64
+		{A904FFD0-EC00-DCF3-38BE-51D3D701B8B0}.Debug|x64.Build.0 = Debug|x64
+		{A904FFD0-EC00-DCF3-38BE-51D3D701B8B0}.Release|x64.ActiveCfg = Release|x64
+		{A904FFD0-EC00-DCF3-38BE-51D3D701B8B0}.Release|x64.Build.0 = Release|x64
+		{C21EDF7C-236D-2FDB-41CA-0FAA1F2F56B4}.Debug|x64.ActiveCfg = Debug|x64
+		{C21EDF7C-236D-2FDB-41CA-0FAA1F2F56B4}.Debug|x64.Build.0 = Debug|x64
+		{C21EDF7C-236D-2FDB-41CA-0FAA1F2F56B4}.Release|x64.ActiveCfg = Release|x64
+		{C21EDF7C-236D-2FDB-41CA-0FAA1F2F56B4}.Release|x64.Build.0 = Release|x64
+		{55D5F045-4C09-E960-2935-7BE1B5C6D8D2}.Debug|x64.ActiveCfg = Debug|x64
+		{55D5F045-4C09-E960-2935-7BE1B5C6D8D2}.Debug|x64.Build.0 = Debug|x64
+		{55D5F045-4C09-E960-2935-7BE1B5C6D8D2}.Release|x64.ActiveCfg = Release|x64
+		{55D5F045-4C09-E960-2935-7BE1B5C6D8D2}.Release|x64.Build.0 = Release|x64
+		{36C862FC-F8BE-2F26-22CC-17A9FB62E368}.Debug|x64.ActiveCfg = Debug|x64
+		{36C862FC-F8BE-2F26-22CC-17A9FB62E368}.Debug|x64.Build.0 = Debug|x64
+		{36C862FC-F8BE-2F26-22CC-17A9FB62E368}.Release|x64.ActiveCfg = Release|x64
+		{36C862FC-F8BE-2F26-22CC-17A9FB62E368}.Release|x64.Build.0 = Release|x64
+		{B1EB1409-F33B-F8CD-8B02-A5AF72E092A7}.Debug|x64.ActiveCfg = Debug|x64
+		{B1EB1409-F33B-F8CD-8B02-A5AF72E092A7}.Debug|x64.Build.0 = Debug|x64
+		{B1EB1409-F33B-F8CD-8B02-A5AF72E092A7}.Release|x64.ActiveCfg = Release|x64
+		{B1EB1409-F33B-F8CD-8B02-A5AF72E092A7}.Release|x64.Build.0 = Release|x64
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {54178D89-7897-4140-AFF9-3F1F8825FCFF}
+	EndGlobalSection
+EndGlobal
