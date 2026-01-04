@@ -1,0 +1,353 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+	<PropertyGroup>
+		<OutputType>WinExe</OutputType>
+		<TargetFramework>net8.0-windows10.0.19041.0</TargetFramework>
+		<RuntimeIdentifier>win-x64</RuntimeIdentifier>
+		<Nullable>enable</Nullable>
+		<UseWPF>true</UseWPF>
+		<AllowUnsafeBlocks>true</AllowUnsafeBlocks>
+		<ApplicationIcon>Resources\Images\favicon.ico</ApplicationIcon>
+		<Platforms>x64</Platforms>
+		<FileVersion>$(AssemblyVersion)</FileVersion>
+		<AssemblyVersion>$(AssemblyVersion)</AssemblyVersion>
+		<Version>1.0.0.0</Version>
+		<UseWindowsForms>True</UseWindowsForms>
+		<SatelliteResourceLanguages>en</SatelliteResourceLanguages>
+		<ApplicationManifest>Resources\app.manifest</ApplicationManifest>
+		<DisableImplicitNuGetFallbackFolder>true</DisableImplicitNuGetFallbackFolder>
+		<AssemblyName>SynQPanel</AssemblyName>
+		<RootNamespace>SynQPanel</RootNamespace>
+
+	</PropertyGroup>
+
+	<!-- Build SynQPanel.Extras and get its output path -->
+	<Target Name="BuildExtras" BeforeTargets="Build">
+		<MSBuild Projects="..\SynQPanel.Extras\SynQPanel.Extras.csproj" Targets="Build" Properties="Configuration=$(Configuration);Platform=$(Platform);TargetFramework=net8.0-windows;RuntimeIdentifier=win-x64;SelfContained=false" />
+		<!-- Get the output path after building -->
+		<MSBuild Projects="..\SynQPanel.Extras\SynQPanel.Extras.csproj" Targets="GetTargetPath" Properties="Configuration=$(Configuration);Platform=$(Platform);TargetFramework=net8.0-windows;RuntimeIdentifier=win-x64">
+			<Output TaskParameter="TargetOutputs" PropertyName="_ExtrasAssemblyPath" />
+		</MSBuild>
+		<PropertyGroup>
+			<ExtrasOutputDir>$([System.IO.Path]::GetDirectoryName('$(_ExtrasAssemblyPath)'))</ExtrasOutputDir>
+		</PropertyGroup>
+		<Message Text="SynQPanel.Extras output directory: $(ExtrasOutputDir)" Importance="High" />
+	</Target>
+
+	<!-- Copy SynQPanel.Extras to build output plugin dir -->
+	<Target Name="CopyExtrasToBuildOutput" AfterTargets="BuildExtras">
+		<MakeDir Directories="$(OutputPath)plugins" />
+		<ItemGroup>
+			<ExtrasFiles Include="$(ExtrasOutputDir)\**\*.*" />
+		</ItemGroup>
+		<Copy SourceFiles="@(ExtrasFiles)" DestinationFolder="$(OutputPath)\plugins\SynQPanel.Extras" SkipUnchangedFiles="true" />
+	</Target>
+
+	<!-- Copy SynQPanel.Extras to publish dir -->
+	<Target Name="CopyExtrasToPublishOutput" AfterTargets="Publish">
+		<!-- Get the output path for copying -->
+		<MSBuild Projects="..\SynQPanel.Extras\SynQPanel.Extras.csproj" Targets="GetTargetPath" Properties="Configuration=$(Configuration);Platform=$(Platform);TargetFramework=net8.0-windows;RuntimeIdentifier=win-x64">
+			<Output TaskParameter="TargetOutputs" PropertyName="_ExtrasAssemblyPath" />
+		</MSBuild>
+		<PropertyGroup>
+			<ExtrasOutputDir>$([System.IO.Path]::GetDirectoryName('$(_ExtrasAssemblyPath)'))</ExtrasOutputDir>
+		</PropertyGroup>
+		<MakeDir Directories="$(PublishDir)\plugins\SynQPanel.Extras" />
+		<ItemGroup>
+			<ExtrasFiles Include="$(ExtrasOutputDir)\**\*.*" />
+		</ItemGroup>
+		<Copy SourceFiles="@(ExtrasFiles)" DestinationFolder="$(PublishDir)\plugins\SynQPanel.Extras" SkipUnchangedFiles="true" />
+	</Target>
+
+	<Target Name="CleanPluginsDirectory" BeforeTargets="Clean">
+		<RemoveDir Directories="$(OutputPath)\plugins" />
+	</Target>
+
+	<Target Name="Sign" AfterTargets="Publish">
+		 <!--<Exec WorkingDirectory="$(PublishDir)" Command="&quot;C:\Program Files (x86)\Windows Kits\10\bin\10.0.22621.0\x64\signtool.exe&quot; sign /a /t http://timestamp.sectigo.com /fd SHA256 /d &quot;SynQPanel&quot; /v SynQPanel.exe" />--> 
+	</Target>
+
+	<PropertyGroup Condition="'$(Configuration)'=='Debug'">
+		<DebugType>full</DebugType>
+		<WarningLevel>6</WarningLevel>
+	</PropertyGroup>
+
+	<PropertyGroup Condition="'$(Configuration)'=='Release'">
+		<DebugType>none</DebugType>
+		<WarningLevel>6</WarningLevel>
+	</PropertyGroup>
+
+	<ItemGroup>
+	  <Compile Remove="Images\**" />
+	  <EmbeddedResource Remove="Images\**" />
+	  <None Remove="Images\**" />
+	  <Page Remove="Images\**" />
+	</ItemGroup>
+
+	<ItemGroup>
+		<None Remove="Effects\DeeperColor.fx" />
+		<None Remove="Effects\DeeperColor.ps" />
+		<None Remove="index.html" />
+		<None Remove="Logo.png" />
+		<None Remove="logo_white.png" />
+		<None Remove="Resources\Binaries\ffmpeg.exe" />
+		<None Remove="Resources\Images\add.ico" />
+		<None Remove="Resources\Images\AIDA\amd.png" />
+		<None Remove="Resources\Images\AIDA\ati.png" />
+		<None Remove="Resources\Images\AIDA\barback.png" />
+		<None Remove="Resources\Images\AIDA\barblue.png" />
+		<None Remove="Resources\Images\AIDA\battery.png" />
+		<None Remove="Resources\Images\AIDA\chip.png" />
+		<None Remove="Resources\Images\AIDA\clock o.png" />
+		<None Remove="Resources\Images\AIDA\clock.png" />
+		<None Remove="Resources\Images\AIDA\computer.png" />
+		<None Remove="Resources\Images\AIDA\control.png" />
+		<None Remove="Resources\Images\AIDA\cpu o.png" />
+		<None Remove="Resources\Images\AIDA\cpu.png" />
+		<None Remove="Resources\Images\AIDA\current o.png" />
+		<None Remove="Resources\Images\AIDA\current.png" />
+		<None Remove="Resources\Images\AIDA\data.png" />
+		<None Remove="Resources\Images\AIDA\empty.png" />
+		<None Remove="Resources\Images\AIDA\factor.png" />
+		<None Remove="Resources\Images\AIDA\fan o.png" />
+		<None Remove="Resources\Images\AIDA\fan.png" />
+		<None Remove="Resources\Images\AIDA\flow.png" />
+		<None Remove="Resources\Images\AIDA\gpu.png" />
+		<None Remove="Resources\Images\AIDA\hdd o.png" />
+		<None Remove="Resources\Images\AIDA\hdd.png" />
+		<None Remove="Resources\Images\AIDA\humidity.png" />
+		<None Remove="Resources\Images\AIDA\intel.png" />
+		<None Remove="Resources\Images\AIDA\level.png" />
+		<None Remove="Resources\Images\AIDA\load.png" />
+		<None Remove="Resources\Images\AIDA\loudspeaker.png" />
+		<None Remove="Resources\Images\AIDA\mainboard.png" />
+		<None Remove="Resources\Images\AIDA\nic.png" />
+		<None Remove="Resources\Images\AIDA\nvidia.png" />
+		<None Remove="Resources\Images\AIDA\power-supply o.png" />
+		<None Remove="Resources\Images\AIDA\power-supply.png" />
+		<None Remove="Resources\Images\AIDA\power.png" />
+		<None Remove="Resources\Images\AIDA\ram o.png" />
+		<None Remove="Resources\Images\AIDA\ram.png" />
+		<None Remove="Resources\Images\AIDA\temperature.png" />
+		<None Remove="Resources\Images\AIDA\throughput.png" />
+		<None Remove="Resources\Images\AIDA\time.png" />
+		<None Remove="Resources\Images\AIDA\voltage o.png" />
+		<None Remove="Resources\Images\AIDA\voltage.png" />
+		<None Remove="Resources\Images\home.jpg" />
+		<None Remove="Resources\Images\logo.ico" />
+		
+		<None Remove="Resources\Images\logo.ico" />
+		<None Remove="Resources\Images\logo.png" />
+		<None Remove="Resources\Images\no_image.png" />
+	</ItemGroup>
+
+	<ItemGroup>
+		<Resource Include="Effects\DeeperColor.fx" />
+		<Resource Include="Effects\DeeperColor.ps" />
+		<Resource Include="Resources\Images\add.ico" />
+		<Resource Include="Resources\Images\AIDA\amd.png" />
+		<Resource Include="Resources\Images\AIDA\ati.png" />
+		<Resource Include="Resources\Images\AIDA\barback.png" />
+		<Resource Include="Resources\Images\AIDA\barblue.png" />
+		<Resource Include="Resources\Images\AIDA\battery.png" />
+		<Resource Include="Resources\Images\AIDA\chip.png" />
+		<Resource Include="Resources\Images\AIDA\clock o.png" />
+		<Resource Include="Resources\Images\AIDA\clock.png" />
+		<Resource Include="Resources\Images\AIDA\computer.png" />
+		<Resource Include="Resources\Images\AIDA\control.png" />
+		<Resource Include="Resources\Images\AIDA\cpu o.png" />
+		<Resource Include="Resources\Images\AIDA\cpu.png" />
+		<Resource Include="Resources\Images\AIDA\current o.png" />
+		<Resource Include="Resources\Images\AIDA\current.png" />
+		<Resource Include="Resources\Images\AIDA\data.png" />
+		<Resource Include="Resources\Images\AIDA\empty.png" />
+		<Resource Include="Resources\Images\AIDA\factor.png" />
+		<Resource Include="Resources\Images\AIDA\fan o.png" />
+		<Resource Include="Resources\Images\AIDA\fan.png" />
+		<Resource Include="Resources\Images\AIDA\flow.png" />
+		<Resource Include="Resources\Images\AIDA\gpu.png" />
+		<Resource Include="Resources\Images\AIDA\hdd o.png" />
+		<Resource Include="Resources\Images\AIDA\hdd.png" />
+		<Resource Include="Resources\Images\AIDA\humidity.png" />
+		<Resource Include="Resources\Images\AIDA\intel.png" />
+		<Resource Include="Resources\Images\AIDA\level.png" />
+		<Resource Include="Resources\Images\AIDA\load.png" />
+		<Resource Include="Resources\Images\AIDA\loudspeaker.png" />
+		<Resource Include="Resources\Images\AIDA\mainboard.png" />
+		<Resource Include="Resources\Images\AIDA\nic.png" />
+		<Resource Include="Resources\Images\AIDA\nvidia.png" />
+		<Resource Include="Resources\Images\AIDA\power-supply o.png" />
+		<Resource Include="Resources\Images\AIDA\power-supply.png" />
+		<Resource Include="Resources\Images\AIDA\power.png" />
+		<Resource Include="Resources\Images\AIDA\ram o.png" />
+		<Resource Include="Resources\Images\AIDA\ram.png" />
+		<Resource Include="Resources\Images\AIDA\temperature.png" />
+		<Resource Include="Resources\Images\AIDA\throughput.png" />
+		<Resource Include="Resources\Images\AIDA\time.png" />
+		<Resource Include="Resources\Images\AIDA\voltage o.png" />
+		<Resource Include="Resources\Images\AIDA\voltage.png" />
+		<Resource Include="Resources\Images\favicon.ico">
+			<CopyToOutputDirectory></CopyToOutputDirectory>
+		</Resource>
+		<Resource Include="Resources\Images\home.jpg" />
+		
+		<Resource Include="Resources\Images\logo.ico" />
+		<Resource Include="Resources\Images\logo.png" />
+		<Resource Include="Resources\Images\no_image.png" />
+		<Content Include="index.html">
+			<CopyToOutputDirectory>Always</CopyToOutputDirectory>
+		</Content>
+	</ItemGroup>
+
+	<ItemGroup>
+		<FrameworkReference Include="Microsoft.AspNetCore.App" />
+		<PackageReference Include="AutoMapper" Version="14.0.0" />
+		<PackageReference Include="BouncyCastle.NetCore" Version="2.2.1" />
+		<PackageReference Include="CommunityToolkit.Mvvm" Version="8.4.0" />
+		<PackageReference Include="Flurl.Http" Version="4.0.2" />
+		<PackageReference Include="FlyleafLib" Version="3.9.3" />
+		<PackageReference Include="gong-wpf-dragdrop" Version="4.0.0" />
+		<PackageReference Include="HidSharp" Version="2.6.4" />
+		<PackageReference Include="ini-parser-netstandard" Version="2.5.3" />
+		<PackageReference Include="LibUsbDotNet" Version="2.2.75" />
+		<PackageReference Include="MahApps.Metro" Version="2.4.11" />
+		<PackageReference Include="Microsoft.Extensions.Caching.Memory" Version="9.0.10" />
+		<PackageReference Include="Microsoft.Extensions.Hosting" Version="9.0.10" />
+		<PackageReference Include="SecureStore" Version="1.2.2" />
+		<PackageReference Include="Sentry" Version="5.16.1" />
+		<PackageReference Include="Serilog" Version="4.3.0" />
+		<PackageReference Include="Serilog.Extensions.Hosting" Version="9.0.0" />
+		<PackageReference Include="Serilog.Sinks.Console" Version="6.0.0" />
+		<PackageReference Include="Serilog.Sinks.Debug" Version="3.0.0" />
+		<PackageReference Include="Serilog.Sinks.File" Version="7.0.0" />
+		<PackageReference Include="Serilog.Enrichers.Thread" Version="4.0.0" />
+		<PackageReference Include="Serilog.Enrichers.Environment" Version="3.0.1" />
+		<PackageReference Include="SkiaSharp" Version="3.119.1" />
+		<PackageReference Include="SkiaSharp.Views.WPF" Version="3.119.1" />
+		<PackageReference Include="Svg.Skia" Version="3.2.1" />
+		<PackageReference Include="System.Diagnostics.PerformanceCounter" Version="9.0.10" />
+		<PackageReference Include="System.IO.Ports" Version="9.0.10" />
+		<PackageReference Include="TaskScheduler" Version="2.12.2" />
+		<PackageReference Include="Topten.RichTextKit" Version="0.4.167" />
+		<PackageReference Include="WPF-UI" Version="3.1.1" />
+		<PackageReference Include="WPF-UI.Tray" Version="3.1.1" />
+	</ItemGroup>
+
+	<ItemGroup>
+	  <ProjectReference Include="..\SynQPanel.Plugins.Loader\SynQPanel.Plugins.Loader.csproj" />
+	  <ProjectReference Include="..\SynQPanel.Plugins.Loader\SynQPanel.Plugins.Loader.csproj" />
+	  <ProjectReference Include="..\SynQPanel.Plugins.Simulator\SynQPanel.Plugins.Simulator.csproj" />
+	  <ProjectReference Include="..\SynQPanel.Plugins\SynQPanel.Plugins.csproj" />
+	</ItemGroup>
+	
+	<ItemGroup>
+		<Compile Update="Properties\Resources.Designer.cs">
+			<DesignTime>True</DesignTime>
+			<AutoGen>True</AutoGen>
+			<DependentUpon>Resources.resx</DependentUpon>
+		</Compile>
+		<Compile Update="Views\Components\Chart\DonutProperties.xaml.cs">
+		  <SubType>Code</SubType>
+		</Compile>
+		<Compile Update="Views\Components\Sensors\PluginSensors.xaml.cs">
+		  <SubType>Code</SubType>
+		</Compile>
+		<Compile Update="Views\Components\Text\TableSensorProperties.xaml.cs">
+		  <SubType>Code</SubType>
+		</Compile>
+		<Compile Update="Views\Pages\PluginsPage.xaml.cs">
+		  <SubType>Code</SubType>
+		</Compile>
+		<Compile Update="Views\Pages\UpdatesPage.xaml.cs">
+		  <SubType>Code</SubType>
+		</Compile>
+		<Compile Update="Views\Pages\ProfilesPage.xaml.cs">
+			<SubType>Code</SubType>
+		</Compile>
+		<Compile Update="Views\Pages\HomePage.xaml.cs">
+			<SubType>Code</SubType>
+		</Compile>
+	</ItemGroup>
+
+	<ItemGroup>
+		<EmbeddedResource Update="Properties\Resources.resx">
+			<Generator>ResXFileCodeGenerator</Generator>
+			<LastGenOutput>Resources.Designer.cs</LastGenOutput>
+		</EmbeddedResource>
+	</ItemGroup>
+
+	<ItemGroup>
+		<None Update="FFmpeg\avcodec-61.dll">
+		  <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+		</None>
+		<None Update="FFmpeg\avdevice-61.dll">
+		  <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+		</None>
+		<None Update="FFmpeg\avfilter-10.dll">
+		  <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+		</None>
+		<None Update="FFmpeg\avformat-61.dll">
+		  <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+		</None>
+		<None Update="FFmpeg\avutil-59.dll">
+		  <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+		</None>
+		<None Update="FFmpeg\ffmpeg.exe">
+		  <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+		</None>
+		<None Update="FFmpeg\postproc-58.dll">
+		  <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+		</None>
+		<None Update="FFmpeg\swresample-5.dll">
+		  <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+		</None>
+		<None Update="FFmpeg\swscale-8.dll">
+		  <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+		</None>
+		<None Update="NunitoSans_7pt_Condensed-BlackItalic.ttf">
+			<CopyToOutputDirectory>Always</CopyToOutputDirectory>
+		</None>
+		<None Update="NunitoSans_7pt_Condensed-BoldItalic.ttf">
+			<CopyToOutputDirectory>Always</CopyToOutputDirectory>
+		</None>
+		<None Update="NunitoSans_7pt_Condensed-ExtraBoldItalic.ttf">
+			<CopyToOutputDirectory>Always</CopyToOutputDirectory>
+		</None>
+		<None Update="NunitoSans_7pt_Condensed-ExtraLightItalic.ttf">
+			<CopyToOutputDirectory>Always</CopyToOutputDirectory>
+		</None>
+		<None Update="NunitoSans_7pt_Condensed-Light.ttf">
+			<CopyToOutputDirectory>Always</CopyToOutputDirectory>
+		</None>
+		<None Update="NunitoSans_7pt_Condensed-Medium.ttf">
+			<CopyToOutputDirectory>Always</CopyToOutputDirectory>
+		</None>
+		<None Update="NunitoSans_7pt_Condensed-Regular.ttf">
+			<CopyToOutputDirectory>Always</CopyToOutputDirectory>
+		</None>
+		<None Update="NunitoSans_7pt_Condensed-SemiBoldItalic.ttf">
+			<CopyToOutputDirectory>Always</CopyToOutputDirectory>
+		</None>
+	</ItemGroup>
+
+	<ItemGroup>
+		<Page Update="Views\Components\Chart\DonutProperties.xaml">
+		  <SubType>Designer</SubType>
+		</Page>
+		<Page Update="Views\Pages\UpdatesPage.xaml">
+		  <SubType>Designer</SubType>
+		</Page>
+		<Page Update="Views\Pages\ProfilesPage.xaml">
+			<XamlRuntime>$(DefaultXamlRuntime)</XamlRuntime>
+		</Page>
+		<Page Update="Views\Pages\HomePage.xaml">
+			<XamlRuntime>$(DefaultXamlRuntime)</XamlRuntime>
+			<SubType>Designer</SubType>
+		</Page>
+	</ItemGroup>
+
+	<ItemGroup>
+	  <Folder Include="Compat\" />
+	  <Folder Include="Resources\Binaries\" />
+	</ItemGroup>
+</Project>

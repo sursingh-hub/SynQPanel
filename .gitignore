@@ -1,0 +1,107 @@
+## ===============================
+## Visual Studio / .NET
+## ===============================
+
+# User-specific files
+*.suo
+*.user
+*.userosscache
+*.sln.docstates
+
+# Visual Studio working folders
+.vs/
+.vscode/
+
+# Build outputs
+[Bb]in/
+[Oo]bj/
+[Dd]ebug/
+[Rr]elease/
+x64/
+x86/
+build/
+bld/
+
+# Publish outputs
+publish/
+AppPackages/
+
+# Logs & diagnostics
+*.log
+*.svclog
+*.pidb
+*.pdb
+crashdump*.dmp
+logs/
+
+# Test results
+[Tt]est[Rr]esult*/
+[Bb]uild[Ll]og.*
+TestResult.xml
+
+# Roslyn / IDE caches
+*.ide/
+ipch/
+
+# NuGet
+packages/
+!packages/build/
+
+# NuGet user-specific
+*.nuget.props
+*.nuget.targets
+
+# Rider / ReSharper
+_ReSharper*/
+*.[Rr]e[Ss]harper
+*.DotSettings.user
+
+# NCrunch
+_NCrunch_*
+.*crunch*.local.xml
+*.ncrunchproject
+
+# DotCover
+*.dotCover
+
+# Profiling
+*.psess
+*.vsp
+*.vspx
+
+# Temporary & backup files
+*.tmp
+*.bak
+*~
+~$*
+
+# ClickOnce / Installer outputs
+InnoSetup/Output/
+[Ee]xpress/
+
+# SQL / local DB
+*.mdf
+*.ldf
+
+# Node / frontend tooling (if ever added)
+node_modules/
+
+# Generated code
+Generated_Code/
+
+# Azure / publish profiles
+*.publishsettings
+*.azurePubxml
+*.pubxml
+
+# Security / certificates
+*.pfx
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# Tooling-specific (local only)
+.git_stats/
+.claude/
+.serena/
