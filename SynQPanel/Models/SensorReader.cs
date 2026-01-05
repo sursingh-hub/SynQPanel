@@ -38,6 +38,9 @@ namespace SynQPanel.Models
             if (string.IsNullOrEmpty(sensorId))
                 return null;
 
+
+               // System.Diagnostics.Debug.WriteLine($"Sensor lookup: '{sensorId}'");
+
             // --- Try PluginMonitor first ---
             if (PluginSensors.TryGet(sensorId, out PluginMonitor.PluginReading reading))
             {
@@ -73,6 +76,51 @@ namespace SynQPanel.Models
 
                 if (match != null)
                 {
+
+                    // ---------------------------------------------
+                    // Special handling: STIME used as numeric gauge
+                    // ---------------------------------------------
+                    if (string.Equals(sensorId, "STIME", StringComparison.OrdinalIgnoreCase))
+                    {
+                        try
+                        {
+                            // Prefer discrete time sensors (always numeric)
+                            var sensorsAll = sensors;
+
+                            double hour = 0;
+                            double min = 0;
+                            double sec = 0;
+
+                            var h = sensorsAll.FirstOrDefault(s => s.Id == "SHOUR24");
+                            var m = sensorsAll.FirstOrDefault(s => s.Id == "SMIN");
+                            var s = sensorsAll.FirstOrDefault(s => s.Id == "SSEC");
+
+                            if (h != null && double.TryParse(h.Value, NumberStyles.Any, CultureInfo.InvariantCulture, out var hv))
+                                hour = hv;
+
+                            if (m != null && double.TryParse(m.Value, NumberStyles.Any, CultureInfo.InvariantCulture, out var mv))
+                                min = mv;
+
+                            if (s != null && double.TryParse(s.Value, NumberStyles.Any, CultureInfo.InvariantCulture, out var sv))
+                                sec = sv;
+
+                            double secondsSinceMidnight = hour * 3600 + min * 60 + sec;
+
+                            return new SensorReading(
+                                0,
+                                86399,
+                                secondsSinceMidnight,
+                                secondsSinceMidnight,
+                                "s"
+                            );
+                        }
+                        catch
+                        {
+                            // fallback to string if anything goes wrong
+                            return new SensorReading(match.Value);
+                        }
+                    }
+
                     // Try numeric parsing
                     if (double.TryParse(match.Value, NumberStyles.Any, CultureInfo.InvariantCulture, out var numeric))
                     {

@@ -1233,6 +1233,11 @@ namespace SynQPanel
                 using var graphics = SkiaGraphics.FromBitmap(bitmap, profile.FontScale);
 
                 AidaMonitor.LatestSensors = aidaHash.RefreshSensorData();
+                Log.Information(
+                "AIDA: LatestSensors updated. Count={Count}",
+                AidaMonitor.LatestSensors?.Count ?? 0
+                 );
+
 
                 // fix: initialize list properly
                 List<DisplayItem> displayItems = new List<DisplayItem>();
@@ -1401,6 +1406,8 @@ namespace SynQPanel
                     var item = items[i];
                     var key = item.GetStringValue("ID", string.Empty);
 
+                    var TYP = item.GetStringValue("TYP", string.Empty);
+
                     var hidden = false;
                     var simple = false;
                     var gauge = false;
@@ -1423,7 +1430,7 @@ namespace SynQPanel
                         gauge = true;
                         key = key[7..];
                     }
-
+                   
                     if (key.StartsWith("[GRAPH]"))
                     {
                         graph = true;
@@ -1439,7 +1446,7 @@ namespace SynQPanel
                     var FNTNAM = item.GetStringValue("FNTNAM", "Arial");
                     var WID = item.GetIntValue("WID", 0);
                     var HEI = item.GetIntValue("HEI", 0);
-                    var TYP = item.GetStringValue("TYP", string.Empty);
+                    
                     var MINVAL = item.GetIntValue("MINVAL", 0);
                     var MAXVAL = item.GetIntValue("MAXVAL", 100);
 
@@ -1627,8 +1634,11 @@ namespace SynQPanel
                             {
                                 foreach (var image in STAFLS.Split('|', StringSplitOptions.RemoveEmptyEntries))
                                 {
+                                    
+                                    
                                     string imagePath = System.IO.Path.Combine(assetFolder, image.Trim()); // <-- use assetFolder passed to import
                                     ImageDisplayItem imageDisplayItem = new(imagePath, profile, image.Trim(), true);
+                                    
                                     gaugeDisplayItem.Images.Add(imageDisplayItem);
                                 }
                             }
@@ -1745,13 +1755,22 @@ namespace SynQPanel
                         }
                         else
                         {
-                            // Original behaviour for .sensorpanel/.sp2
-                            isBackground =
-                                (BGIMG == 0) &&
-                                (ITMX == 0) &&
-                                (ITMY == 0) &&
-                                profile.BackgroundImagePath == null &&
-                                !IMGFIL.ToLowerInvariant().Contains("preview");
+                            // Authoritative AIDA rule:
+                            // BGIMG == 1 means background, always (except preview)
+                            if (BGIMG == 1 && !IMGFIL.ToLowerInvariant().Contains("preview"))
+                            {
+                                isBackground = profile.BackgroundImagePath == null;
+                            }
+                            else
+                            {
+                                // Legacy heuristic fallback (older panels)
+                                isBackground =
+                                    (BGIMG == 0) &&
+                                    (ITMX == 0) &&
+                                    (ITMY == 0) &&
+                                    profile.BackgroundImagePath == null &&
+                                    !IMGFIL.ToLowerInvariant().Contains("preview");
+                            }
                         }
 
                         if (isBackground)
@@ -1868,6 +1887,7 @@ namespace SynQPanel
                                     displayItems.Add(calendarDisplayItem);
                                 }
                                 break;
+
                             case "STIME":
                             case "STIMENS":
                                 {
@@ -1892,25 +1912,6 @@ namespace SynQPanel
                                 break;
                             default:
                                 {
-
-                                    
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
                                     var SHWLBL = item.GetIntValue("SHWLBL", 0);
 

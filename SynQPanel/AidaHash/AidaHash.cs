@@ -5,6 +5,8 @@ using System.Runtime.InteropServices;
 using System.Text;
 using System.Xml.Linq;
 using System.Diagnostics;
+using Serilog;
+using Serilog.Events;
 
 namespace SynQPanel.Aida
 {
@@ -74,8 +76,15 @@ namespace SynQPanel.Aida
 
         public List<AidaSensorItem> RefreshSensorData()
         {
+            Log.Information("AIDA: Attempting to read shared memory sensors");
+
             if (!OpenSharedMemory())
-                throw new InvalidOperationException("Failed to open AIDA64 shared memory. Please check if AIDA64 running with Shared Memory enabled");
+            {
+                Log.Error("AIDA: OpenSharedMemory() failed");
+                throw new InvalidOperationException(
+                    "Failed to open AIDA64 shared memory. Please check if AIDA64 is running and Shared Memory is enabled."
+                );
+            }
 
             if (_mapView != IntPtr.Zero)
             {
@@ -87,6 +96,7 @@ namespace SynQPanel.Aida
             if (_mapView == IntPtr.Zero)
             {
                 int err = Marshal.GetLastWin32Error();
+                Log.Error("AIDA: MapViewOfFile failed with Win32 error {Error}", err);
                 throw new InvalidOperationException($"MapViewOfFile returned NULL. Win32 Error: {err}");
             }
 
@@ -98,24 +108,17 @@ namespace SynQPanel.Aida
                 int nullPos = Array.IndexOf(buffer, (byte)0);
                 int length = nullPos >= 0 ? nullPos : MaxBufferSize;
 
-                string xml = Encoding.Default.GetString(buffer, 0, length).Trim('\0', '\r', '\n', ' ');
-
-              //  if (!string.IsNullOrWhiteSpace(xml))
-               // {
-               //     Debug.WriteLine("===== AIDA RAW XML PREVIEW (first 1000 chars) =====");
-               //     Debug.WriteLine(xml.Length > 1000 ? xml.Substring(0, 1000) : xml);
-               // }
-               // else
-               // {
-               //     Debug.WriteLine("AIDA: raw XML empty.");
-              //  }
+                string xml = Encoding.Default
+                    .GetString(buffer, 0, length)
+                    .Trim('\0', '\r', '\n', ' ');
 
                 string xmlToParse = "<root>" + xml + "</root>";
+
                 var doc = XDocument.Parse(xmlToParse);
 
-                var sensors = doc.Root
+                var sensors = doc.Root!
                     .Descendants()
-                    .Where(x => x.Element("id") != null) // need id
+                    .Where(x => x.Element("id") != null)
                     .Select(x =>
                     {
                         var idRaw = x.Element("id")?.Value ?? string.Empty;
@@ -126,7 +129,6 @@ namespace SynQPanel.Aida
                         var label = Normalize(labelRaw);
                         var value = Normalize(valueRaw);
 
-                        // infer unit conservatively
                         string unit = InferUnit(x.Name.LocalName ?? string.Empty, id, label, value);
 
                         return new AidaSensorItem
@@ -141,11 +143,18 @@ namespace SynQPanel.Aida
                     .Where(s => !string.IsNullOrEmpty(s.Id) || !string.IsNullOrEmpty(s.Label))
                     .ToList();
 
+                Log.Information("AIDA: Shared memory read completed. Sensors found: {Count}", sensors.Count);
+
+                if (sensors.Count == 0)
+                {
+                    Log.Warning("AIDA: Shared memory returned zero sensors");
+                }
+
                 return sensors;
             }
             catch (Exception ex)
             {
-                Debug.WriteLine("Error parsing AIDA64 shared memory XML: " + ex);
+                Log.Error(ex, "AIDA: Failed while parsing shared memory XML");
                 throw;
             }
             finally
@@ -157,6 +166,7 @@ namespace SynQPanel.Aida
                 }
             }
         }
+
 
         private static string Normalize(string? input)
         {
