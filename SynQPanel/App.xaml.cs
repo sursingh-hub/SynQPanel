@@ -1,4 +1,10 @@
 ﻿using FlyleafLib;
+using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Hosting;
+using Microsoft.Win32;
+using Sentry;
+using Serilog;
+using Serilog.Events;
 using SynQPanel.Models;
 using SynQPanel.Monitors;
 using SynQPanel.Services;
@@ -6,12 +12,6 @@ using SynQPanel.Utils;
 using SynQPanel.ViewModels;
 using SynQPanel.Views.Common;
 using SynQPanel.Views.Windows;
-using Microsoft.Extensions.DependencyInjection;
-using Microsoft.Extensions.Hosting;
-using Microsoft.Win32;
-using Sentry;
-using Serilog;
-using Serilog.Events;
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
@@ -19,6 +19,7 @@ using System.IO;
 using System.Linq;
 using System.Reflection;
 using System.Runtime.InteropServices;
+using System.Security.Principal;
 using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Media;
@@ -26,6 +27,7 @@ using System.Windows.Threading;
 using Wpf.Ui;
 using Wpf.Ui.Appearance;
 using Wpf.Ui.Controls;
+
 
 namespace SynQPanel
 {
@@ -42,8 +44,8 @@ namespace SynQPanel
 #if DEBUG
            .MinimumLevel.Debug()
 #else
-           //.MinimumLevel.Information()
-           .MinimumLevel.Warning()
+           .MinimumLevel.Information()
+          // .MinimumLevel.Warning()
 #endif
            .MinimumLevel.Override("Microsoft", LogEventLevel.Information)
            .Enrich.WithThreadId()
@@ -217,6 +219,8 @@ namespace SynQPanel
         protected override async void OnStartup(StartupEventArgs e)
         {
             Logger.Information("SynQPanel starting up");
+
+            
             RenderOptions.ProcessRenderMode = System.Windows.Interop.RenderMode.Default;
 
             Process proc = Process.GetCurrentProcess();
@@ -287,6 +291,26 @@ namespace SynQPanel
             _host.Start();
             Logger.Debug("Application host started");
 
+            try
+            {
+                bool isAdmin = SecurityUtil.IsRunningAsAdmin();
+
+                using var identity = WindowsIdentity.GetCurrent();
+
+                Logger.Information(
+                    "Security context: IsAdmin={IsAdmin}, User={User}, IsSystem={IsSystem}, Is64Bit={Is64Bit}",
+                    isAdmin,
+                    identity.Name,
+                    identity.IsSystem,
+                    Environment.Is64BitProcess
+                );
+            }
+            catch (Exception ex)
+            {
+                Logger.Warning(ex, "Failed to determine process elevation status");
+            }
+
+
             Engine.Start(new EngineConfig()
             {
 #if DEBUG
@@ -333,9 +357,6 @@ namespace SynQPanel
                 SharedModel.Instance.AddDisplayItem(textDisplayItem);
                 SharedModel.Instance.SaveDisplayItems();
             }
-
-
-          
             
             // No runtime startup performed. Keeping stub calls removed to avoid loading Libre.
             try
@@ -347,9 +368,6 @@ namespace SynQPanel
 
             await PluginMonitor.Instance.StartAsync();
             SystemEvents.PowerModeChanged += OnPowerChange;
-           
-
-            
 
             //var window = new SkiaDisplayWindow();
             //window.Show();
@@ -382,11 +400,11 @@ namespace SynQPanel
             }
         }
 
-      
 
-  
+       
 
-        
+
+
 
         public static async Task CleanShutDown()
         {
