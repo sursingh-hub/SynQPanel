@@ -33,10 +33,7 @@ namespace SynQPanel
         public static ConfigModel Instance { get { return lazy.Value; } }
         public bool EnableRslcdDebug { get; set; } = false;
 
-     
-
        
-
         public ObservableCollection<Profile> Profiles { get; private set; } = [];
         private readonly object _profilesLock = new();
 

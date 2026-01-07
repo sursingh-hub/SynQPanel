@@ -44,11 +44,6 @@ namespace SynQPanel.Models
         [ObservableProperty]
         private string _gridLinesColor = "#1A808080";
 
-        
-        
-       
-       
-
         [ObservableProperty]
         private bool _webServer = false;
 
@@ -70,8 +65,9 @@ namespace SynQPanel.Models
         [ObservableProperty]
         private int _version = 114;
 
+        public bool DiagnosticsMode { get; set; } = false;
 
-        
+
         public bool PreferAidaOnly { get; set; } = true;
         // For SensorMapping Logs
         private bool _verboseMapLogs = false; // make it true while developing/debugging

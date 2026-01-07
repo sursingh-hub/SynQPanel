@@ -10,6 +10,9 @@ using System.Security.Principal;
 using System.Text;
 using System.Xml;
 using System.Xml.Linq;
+using Topten.RichTextKit.Utils;
+
+
 
 namespace SynQPanel.Aida
 {
@@ -29,7 +32,13 @@ namespace SynQPanel.Aida
         private const string SharedMemName = "AIDA64_SensorValues";
         private const uint FileMapRead = 0x0004;
         private const int MaxBufferSize = 16384; // 16 KB (adjust if you need larger)
-       // private const int MaxBufferSize = 32768; // 32 KB
+                                                 // private const int MaxBufferSize = 32768; // 32 KB
+
+        private static bool _loggedMappingSuccess = false;
+        private static int _lastSensorCount = -1;
+        private static int _lastMappedSize = -1;
+
+
 
         [DllImport("kernel32.dll", SetLastError = true)]
         private static extern IntPtr OpenFileMapping(uint dwDesiredAccess, bool bInheritHandle, string lpName);
@@ -51,7 +60,14 @@ namespace SynQPanel.Aida
 
         public bool OpenSharedMemory()
         {
-            Log.Information("AIDA: Opening shared memory (MapName={MapName})", SharedMemName);
+            if (LoggingUtil.DiagnosticsEnabled)
+            {
+                Log.Information(
+                    "AIDA: Opening shared memory (MapName={MapName})",
+                    SharedMemName
+                );
+            }
+
 
             if (_hMap != IntPtr.Zero)
                 return true;
@@ -70,7 +86,11 @@ namespace SynQPanel.Aida
 
                 return false;
             }
-            Log.Information("AIDA: OpenFileMapping succeeded");
+            if (!_loggedMappingSuccess && LoggingUtil.DiagnosticsEnabled)
+            {
+                Log.Information("AIDA: OpenFileMapping succeeded");
+                _loggedMappingSuccess = true;
+            }
             return true;
 
         }
@@ -103,7 +123,11 @@ namespace SynQPanel.Aida
 
         public List<AidaSensorItem> RefreshSensorData()
         {
-            Log.Information("AIDA: Attempting to read shared memory sensors");
+            if (LoggingUtil.DiagnosticsEnabled)
+            {
+                Log.Information("AIDA: Attempting to read shared memory sensors");
+            }
+
 
             if (!OpenSharedMemory())
             {
@@ -148,10 +172,19 @@ namespace SynQPanel.Aida
 
                 int mappedSize = (int)mbi.RegionSize;
 
-                Log.Information(
-                    "AIDA: Mapped shared memory region size={Size} bytes",
-                    mappedSize
-                );
+                if (_lastMappedSize != mappedSize)
+                {
+                    if (LoggingUtil.DiagnosticsEnabled)
+                    {
+                        Log.Information(
+                            "AIDA: Mapped shared memory region size={Size} bytes",
+                            mappedSize
+                        );
+                    }
+
+                    _lastMappedSize = mappedSize;
+                }
+
 
                 // Allocate buffer exactly matching mapped region
                 var buffer = new byte[mappedSize];
@@ -161,24 +194,33 @@ namespace SynQPanel.Aida
 
 
                 int nullPos = Array.IndexOf(buffer, (byte)0);
-                int length = nullPos >= 0 ? nullPos : MaxBufferSize;
+                int length = nullPos >= 0 ? nullPos : mappedSize;
 
-                Log.Debug(
-                "AIDA: Raw shared memory buffer length={Length} / MaxBufferSize={Max}",
-                length,
-                MaxBufferSize
-                );
 
-                if (length >= MaxBufferSize)
+                if (LoggingUtil.DiagnosticsEnabled)
                 {
-                    Log.Warning(
-                        "AIDA: Shared memory buffer may be truncated (Length reached MaxBufferSize={Max})",
+                    Log.Debug(
+                        "AIDA: Raw shared memory buffer length={Length} / MaxBufferSize={Max}",
+                        length,
                         MaxBufferSize
                     );
                 }
 
+
+                if (length >= mappedSize)
+                {
+                    Log.Warning(
+                        "AIDA: Shared memory buffer may be truncated (Length reached mapped size={Size})",
+                        mappedSize
+                    );
+                }
+
+
                 // 🔍 NEW: log raw buffer size
-                Log.Debug("AIDA: Raw shared memory buffer length={Length}", length);
+                if (LoggingUtil.DiagnosticsEnabled)
+                {
+                    Log.Debug("AIDA: Raw shared memory buffer length={Length}", length);
+                }
 
                 string xml = Encoding.Default
                     .GetString(buffer, 0, length)
@@ -263,7 +305,19 @@ namespace SynQPanel.Aida
                     .ToList();
 
                 // ✅ NEW: final result logging
-                Log.Information("AIDA: Shared memory parsed successfully. Sensors found={Count}", sensors.Count);
+                if (_lastSensorCount != sensors.Count)
+                {
+                    if (LoggingUtil.DiagnosticsEnabled)
+                    {
+                        Log.Information(
+                            "AIDA: Shared memory parsed successfully. Sensors found={Count}",
+                            sensors.Count
+                        );
+                    }
+
+                    _lastSensorCount = sensors.Count;
+                }
+
 
                 if (sensors.Count == 0)
                 {
