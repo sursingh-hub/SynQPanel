@@ -67,6 +67,9 @@ namespace SynQPanel.Models
 
         public bool DiagnosticsMode { get; set; } = false;
 
+        public bool CloseToTray { get; set; } = false;
+
+
 
         public bool PreferAidaOnly { get; set; } = true;
         // For SensorMapping Logs

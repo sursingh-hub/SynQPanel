@@ -360,6 +360,9 @@ namespace SynQPanel
                             Settings.StartMinimized = settings.StartMinimized;
                             Settings.MinimizeToTray = settings.MinimizeToTray;
 
+                            Settings.CloseToTray = settings.CloseToTray;
+
+
                             Settings.SelectedItemColor = settings.SelectedItemColor;
                             Settings.ShowGridLines = settings.ShowGridLines;
                             Settings.GridLinesColor = settings.GridLinesColor;

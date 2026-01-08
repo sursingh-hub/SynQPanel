@@ -1,10 +1,15 @@
 ﻿using SynQPanel.Models;
 using SynQPanel.Views.Common;
+using SynQPanel.Views.Windows;
 using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
 using System.Windows.Threading;
+using System.Windows;
+using SynQPanel.Views.Pages;
+
+
 
 namespace SynQPanel
 {
@@ -47,6 +52,8 @@ namespace SynQPanel
             _threadReady.Wait(5000);
         }
 
+        
+        
         public void ShowDisplayWindow(Profile profile)
         {
             if (Dispatcher == null) return;
@@ -79,7 +86,7 @@ namespace SynQPanel
                 }
             });
         }
-
+        
         private void CreateAndShowWindow(Profile profile)
         {
             var window = new DisplayWindow(profile);
@@ -87,6 +94,31 @@ namespace SynQPanel
             _windows[profile.Guid] = window;
             window.Show();
         }
+
+        
+        /*
+        private void CreateAndShowWindow(Profile profile)
+        {
+            var window = new DisplayWindow(profile);
+
+            // ✅ STEP 2: listen to canvas right-click
+            window.CanvasRightClicked += pos =>
+            {
+                Application.Current.Dispatcher.Invoke(() =>
+                {
+                    if (Application.Current.MainWindow is MainWindow mainWindow)
+                    {
+                        mainWindow.RestoreWindow();
+                        mainWindow.Navigate(typeof(DesignPage));
+                    }
+                });
+            };
+
+            window.Closed += Window_Closed;
+            _windows[profile.Guid] = window;
+            window.Show();
+        }
+        */
 
         private void Window_Closed(object? sender, EventArgs e)
         {

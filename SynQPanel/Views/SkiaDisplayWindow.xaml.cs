@@ -1,14 +1,18 @@
-﻿using SynQPanel.Drawing;
-using SynQPanel.Models;
-using SynQPanel.Utils;
+﻿using Serilog;
 using SkiaSharp;
 using SkiaSharp.Views.Desktop;
+using SynQPanel.Drawing;
+using SynQPanel.Models;
+using SynQPanel.Utils;
+using SynQPanel.Views.Windows;
 using System;
 using System.Diagnostics;
-using Serilog;
 using System.Linq;
 using System.Timers;
 using System.Windows;
+using System.Windows.Controls;
+
+
 
 namespace SynQPanel.Views
 {
@@ -21,8 +25,8 @@ namespace SynQPanel.Views
         private readonly Stopwatch _stopwatch = new();
         private readonly FpsCounter fpsCounter = new(200);
 
+        
         private Profile _profile = ConfigModel.Instance.Profiles.First();
-
         public SkiaDisplayWindow()
         {
             InitializeComponent();
@@ -30,8 +34,8 @@ namespace SynQPanel.Views
             Width = _profile.Width;
             Height = _profile.Height;
 
-            // Set up a timer to refresh the drawing
-            _timer = new(1000/60.0); // Refresh every 100ms (10 times per second)
+           // Set up a timer to refresh the drawing
+            _timer = new(1000 / 60.0); // Refresh every 100ms (10 times per second)
             _timer.Elapsed += OnTimerElapsed;
             _timer.AutoReset = true;
             _timer.Start();
@@ -104,5 +108,10 @@ namespace SynQPanel.Views
                 }
             }
         }
+    
+    
+    
+    
+    
     }
 }

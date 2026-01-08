@@ -1,12 +1,13 @@
-﻿using SynQPanel.Drawing;
-using SynQPanel.Models;
-using SynQPanel.Utils;
-using Microsoft.Win32;
+﻿using Microsoft.Win32;
+using Serilog;
 using SkiaSharp;
 using SkiaSharp.Views.Desktop;
 using SkiaSharp.Views.WPF;
+using SynQPanel.Drawing;
+using SynQPanel.Models;
+using SynQPanel.Utils;
+using SynQPanel.Views.Windows;
 using System;
-using Serilog;
 using System.Linq;
 using System.Runtime.InteropServices;
 using System.Timers;
@@ -17,6 +18,8 @@ using System.Windows.Input;
 using System.Windows.Interop;
 using System.Windows.Media;
 using System.Windows.Threading;
+using SynQPanel.Views;
+
 
 namespace SynQPanel.Views.Common
 {
@@ -25,6 +28,9 @@ namespace SynQPanel.Views.Common
     /// </summary>
     public partial class DisplayWindow
     {
+        
+        
+        
         private static readonly ILogger Logger = Log.ForContext<DisplayWindow>();
         SKElement? _sKElement;
         SKGLElement? _skGlElement;
@@ -42,7 +48,7 @@ namespace SynQPanel.Views.Common
         private Timer? _renderTimer;
         private readonly FpsCounter FpsCounter = new();
 
-      
+        
         public DisplayWindow(Profile profile)
         {
             RenderOptions.ProcessRenderMode = RenderMode.Default;
@@ -622,7 +628,31 @@ namespace SynQPanel.Views.Common
                     });
                 }
             }
+
+
+            else if (e.ChangedButton == MouseButton.Right)
+            {
+                Log.Debug(
+                    "RIGHT CLICK detected at position {X},{Y}",
+                    e.GetPosition(this).X,
+                    e.GetPosition(this).Y
+                );
+
+                var screenPoint = PointToScreen(e.GetPosition(this));
+
+                Application.Current.Dispatcher.Invoke(() =>
+                {
+                    if (Application.Current.MainWindow is MainWindow mainWindow)
+                    {
+                        mainWindow.ShowCanvasContextMenu(screenPoint, Profile);
+                    }
+                });
+
+                e.Handled = true;
+            }
         }
+
+
 
         bool dragStart = false;
         System.Windows.Point startPosition = new System.Windows.Point();
