@@ -9,11 +9,13 @@
 		<AllowUnsafeBlocks>true</AllowUnsafeBlocks>
 		<ApplicationIcon>Resources\Images\favicon.ico</ApplicationIcon>
 		<Platforms>x64</Platforms>
-		
-			<AssemblyVersion>1.0.1.0</AssemblyVersion>
-			<FileVersion>1.0.1.0</FileVersion>
-			<Version>1.0.1</Version>
-			<InformationalVersion>1.0.1</InformationalVersion>
+
+		<Version>1.0.1</Version>
+		<AssemblyVersion>1.0.1.0</AssemblyVersion>
+		<FileVersion>1.0.1.0</FileVersion>
+		<InformationalVersion>1.0.1</InformationalVersion>
+		<GenerateAssemblyInfo>true</GenerateAssemblyInfo>
+
 
 		<UseWindowsForms>True</UseWindowsForms>
 		<SatelliteResourceLanguages>en</SatelliteResourceLanguages>
