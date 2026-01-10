@@ -1,10 +1,18 @@
-﻿using System;
+﻿using Serilog;
+using Serilog.Events;
+using SynQPanel.Utils;
+using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Linq;
 using System.Runtime.InteropServices;
+using System.Security.Principal;
 using System.Text;
+using System.Xml;
 using System.Xml.Linq;
-using System.Diagnostics;
+using Topten.RichTextKit.Utils;
+
+
 
 namespace SynQPanel.Aida
 {
@@ -24,13 +32,20 @@ namespace SynQPanel.Aida
         private const string SharedMemName = "AIDA64_SensorValues";
         private const uint FileMapRead = 0x0004;
         private const int MaxBufferSize = 16384; // 16 KB (adjust if you need larger)
+                                                 // private const int MaxBufferSize = 32768; // 32 KB
+
+        private static bool _loggedMappingSuccess = false;
+        private static int _lastSensorCount = -1;
+        private static int _lastMappedSize = -1;
+
+
 
         [DllImport("kernel32.dll", SetLastError = true)]
         private static extern IntPtr OpenFileMapping(uint dwDesiredAccess, bool bInheritHandle, string lpName);
 
         [DllImport("kernel32.dll", SetLastError = true)]
         private static extern IntPtr MapViewOfFile(IntPtr hFileMappingObject, uint dwDesiredAccess,
-            uint dwFileOffsetHigh, uint dwFileOffsetLow, UIntPtr dwNumberOfBytesToMap);
+        uint dwFileOffsetHigh, uint dwFileOffsetLow, UIntPtr dwNumberOfBytesToMap);
 
         [DllImport("kernel32.dll", SetLastError = true)]
         private static extern bool UnmapViewOfFile(IntPtr lpBaseAddress);
@@ -45,17 +60,39 @@ namespace SynQPanel.Aida
 
         public bool OpenSharedMemory()
         {
+            if (LoggingUtil.DiagnosticsEnabled)
+            {
+                Log.Information(
+                    "AIDA: Opening shared memory (MapName={MapName})",
+                    SharedMemName
+                );
+            }
+
+
             if (_hMap != IntPtr.Zero)
                 return true;
 
             _hMap = OpenFileMapping(FileMapRead, false, SharedMemName);
             if (_hMap == IntPtr.Zero)
             {
-                Debug.WriteLine($"AIDA: OpenFileMapping failed: {Marshal.GetLastWin32Error()}");
+                int err = Marshal.GetLastWin32Error();
+
+                Log.Error(
+                    "AIDA: OpenFileMapping failed. Win32Error={Error}, IsAdmin={IsAdmin}, MapName={MapName}",
+                    err,
+                    SecurityUtil.IsRunningAsAdmin(),
+                    SharedMemName
+                );
+
                 return false;
             }
-
+            if (!_loggedMappingSuccess && LoggingUtil.DiagnosticsEnabled)
+            {
+                Log.Information("AIDA: OpenFileMapping succeeded");
+                _loggedMappingSuccess = true;
+            }
             return true;
+
         }
 
         public void Close()
@@ -72,10 +109,33 @@ namespace SynQPanel.Aida
             }
         }
 
+        [StructLayout(LayoutKind.Sequential)]
+        private struct MEMORY_BASIC_INFORMATION
+        {
+            public IntPtr BaseAddress;
+            public IntPtr AllocationBase;
+            public uint AllocationProtect;
+            public UIntPtr RegionSize;
+            public uint State;
+            public uint Protect;
+            public uint Type;
+        }
+
         public List<AidaSensorItem> RefreshSensorData()
         {
+            if (LoggingUtil.DiagnosticsEnabled)
+            {
+                Log.Information("AIDA: Attempting to read shared memory sensors");
+            }
+
+
             if (!OpenSharedMemory())
-                throw new InvalidOperationException("Failed to open AIDA64 shared memory. Please check if AIDA64 running with Shared Memory enabled");
+            {
+                Log.Error("AIDA: OpenSharedMemory() failed");
+                throw new InvalidOperationException(
+                    "Failed to open AIDA64 shared memory. Please check if AIDA64 is running and Shared Memory is enabled."
+                );
+            }
 
             if (_mapView != IntPtr.Zero)
             {
@@ -83,39 +143,143 @@ namespace SynQPanel.Aida
                 _mapView = IntPtr.Zero;
             }
 
-            _mapView = MapViewOfFile(_hMap, FileMapRead, 0, 0, (UIntPtr)MaxBufferSize);
+            //_mapView = MapViewOfFile(_hMap, FileMapRead, 0, 0, (UIntPtr)MaxBufferSize);
+
+            _mapView = MapViewOfFile(
+            _hMap,
+            FileMapRead,
+            0,
+            0,
+            UIntPtr.Zero   // map entire section
+            );
+
             if (_mapView == IntPtr.Zero)
             {
                 int err = Marshal.GetLastWin32Error();
+                Log.Error("AIDA: MapViewOfFile failed. Win32Error={Error}", err);
                 throw new InvalidOperationException($"MapViewOfFile returned NULL. Win32 Error: {err}");
             }
 
             try
             {
-                var buffer = new byte[MaxBufferSize];
-                Marshal.Copy(_mapView, buffer, 0, MaxBufferSize);
+                // 🔍 Query actual mapped memory size
+                MEMORY_BASIC_INFORMATION mbi;
+                VirtualQuery(
+                    _mapView,
+                    out mbi,
+                    (UIntPtr)Marshal.SizeOf<MEMORY_BASIC_INFORMATION>()
+                );
+
+                int mappedSize = (int)mbi.RegionSize;
+
+                if (_lastMappedSize != mappedSize)
+                {
+                    if (LoggingUtil.DiagnosticsEnabled)
+                    {
+                        Log.Information(
+                            "AIDA: Mapped shared memory region size={Size} bytes",
+                            mappedSize
+                        );
+                    }
+
+                    _lastMappedSize = mappedSize;
+                }
+
+
+                // Allocate buffer exactly matching mapped region
+                var buffer = new byte[mappedSize];
+
+                // SAFE copy — no overflow possible
+                Marshal.Copy(_mapView, buffer, 0, mappedSize);
+
 
                 int nullPos = Array.IndexOf(buffer, (byte)0);
-                int length = nullPos >= 0 ? nullPos : MaxBufferSize;
+                int length = nullPos >= 0 ? nullPos : mappedSize;
 
-                string xml = Encoding.Default.GetString(buffer, 0, length).Trim('\0', '\r', '\n', ' ');
 
-              //  if (!string.IsNullOrWhiteSpace(xml))
-               // {
-               //     Debug.WriteLine("===== AIDA RAW XML PREVIEW (first 1000 chars) =====");
-               //     Debug.WriteLine(xml.Length > 1000 ? xml.Substring(0, 1000) : xml);
-               // }
-               // else
-               // {
-               //     Debug.WriteLine("AIDA: raw XML empty.");
-              //  }
+                if (LoggingUtil.DiagnosticsEnabled)
+                {
+                    Log.Debug(
+                        "AIDA: Raw shared memory buffer length={Length} / MaxBufferSize={Max}",
+                        length,
+                        MaxBufferSize
+                    );
+                }
+
+
+                if (length >= mappedSize)
+                {
+                    Log.Warning(
+                        "AIDA: Shared memory buffer may be truncated (Length reached mapped size={Size})",
+                        mappedSize
+                    );
+                }
+
+
+                // 🔍 NEW: log raw buffer size
+                if (LoggingUtil.DiagnosticsEnabled)
+                {
+                    Log.Debug("AIDA: Raw shared memory buffer length={Length}", length);
+                }
+
+                string xml = Encoding.Default
+                    .GetString(buffer, 0, length)
+                    .Trim('\0', '\r', '\n', ' ');
+
+                // 🔍 NEW: basic sanity check
+                if (!xml.Contains("<id>", StringComparison.OrdinalIgnoreCase))
+                {
+                    Log.Warning("AIDA: XML does not contain <id> tags. Possible corruption or mismatch.");
+                }
+
+                // Ensure we don't parse broken XML
+                int lastTagEnd = xml.LastIndexOf('>');
+                if (lastTagEnd > 0 && lastTagEnd < xml.Length - 1)
+                {
+                    Log.Warning(
+                        "AIDA: Trimming truncated XML from {OriginalLength} to {TrimmedLength}",
+                        xml.Length,
+                        lastTagEnd + 1
+                    );
+
+                    xml = xml.Substring(0, lastTagEnd + 1);
+                }
+
 
                 string xmlToParse = "<root>" + xml + "</root>";
-                var doc = XDocument.Parse(xmlToParse);
 
-                var sensors = doc.Root
+                XDocument doc;
+                try
+                {
+                    doc = XDocument.Parse(xmlToParse);
+                }
+                catch (XmlException ex)
+                {
+                    // 🔥 CRITICAL: do NOT crash, do NOT rethrow
+                    Log.Error(
+                        ex,
+                        "AIDA: XML parsing failed after truncation handling. XML length={Length}",
+                        xml.Length
+                    );
+
+                    // 🔍 Helpful diagnostics (safe, capped)
+                    Log.Debug(
+                        "AIDA: XML HEAD (first 500 chars): {Head}",
+                        xml.Length > 500 ? xml.Substring(0, 500) : xml
+                    );
+
+                    Log.Debug(
+                        "AIDA: XML TAIL (last 500 chars): {Tail}",
+                        xml.Length > 500 ? xml.Substring(xml.Length - 500) : xml
+                    );
+
+                    return new List<AidaSensorItem>(); // graceful fallback
+                }
+
+
+                var sensors = doc.Root!
                     .Descendants()
-                    .Where(x => x.Element("id") != null) // need id
+                    .Where(x => x.Element("id") != null)
                     .Select(x =>
                     {
                         var idRaw = x.Element("id")?.Value ?? string.Empty;
@@ -126,7 +290,6 @@ namespace SynQPanel.Aida
                         var label = Normalize(labelRaw);
                         var value = Normalize(valueRaw);
 
-                        // infer unit conservatively
                         string unit = InferUnit(x.Name.LocalName ?? string.Empty, id, label, value);
 
                         return new AidaSensorItem
@@ -141,11 +304,31 @@ namespace SynQPanel.Aida
                     .Where(s => !string.IsNullOrEmpty(s.Id) || !string.IsNullOrEmpty(s.Label))
                     .ToList();
 
+                // ✅ NEW: final result logging
+                if (_lastSensorCount != sensors.Count)
+                {
+                    if (LoggingUtil.DiagnosticsEnabled)
+                    {
+                        Log.Information(
+                            "AIDA: Shared memory parsed successfully. Sensors found={Count}",
+                            sensors.Count
+                        );
+                    }
+
+                    _lastSensorCount = sensors.Count;
+                }
+
+
+                if (sensors.Count == 0)
+                {
+                    Log.Warning("AIDA: Sensor list is EMPTY after parsing");
+                }
+
                 return sensors;
             }
             catch (Exception ex)
             {
-                Debug.WriteLine("Error parsing AIDA64 shared memory XML: " + ex);
+                Log.Error(ex, "AIDA: Failed while reading or parsing shared memory");
                 throw;
             }
             finally
@@ -296,5 +479,15 @@ namespace SynQPanel.Aida
             GC.SuppressFinalize(this);
         }
         #endregion
+
+        [DllImport("kernel32.dll")]
+        private static extern UIntPtr VirtualQuery(
+        IntPtr lpAddress,
+        out MEMORY_BASIC_INFORMATION lpBuffer,
+        UIntPtr dwLength
+        );
+
+
+
     }
 }

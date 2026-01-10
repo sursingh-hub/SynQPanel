@@ -137,6 +137,43 @@
                 </ui:CardControl.Header>
                 <ui:ToggleSwitch IsChecked="{Binding Source={x:Static local:ConfigModel.Instance}, Path=Settings.MinimizeToTray}" />
             </ui:CardControl>
+
+            <ui:CardControl Margin="0,10,0,0">
+                <ui:CardControl.Icon>
+                    <ui:SymbolIcon Symbol="DismissCircle20" />
+                </ui:CardControl.Icon>
+
+                <ui:CardControl.Header>
+                    <Grid>
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="*" />
+                            <ColumnDefinition Width="Auto" />
+                        </Grid.ColumnDefinitions>
+
+                        <StackPanel Grid.Column="0" VerticalAlignment="Center">
+                            <TextBlock
+                                FontSize="13"
+                                FontWeight="Medium"
+                                Text="Close to tray" />
+
+                            <TextBlock
+                                Margin="0,5,0,0"
+                                FontSize="12"
+                                Foreground="{DynamicResource TextFillColorTertiaryBrush}"
+                                Text="Keep SynQPanel running in the system tray when the window is closed." />
+                        </StackPanel>
+                    </Grid>
+                </ui:CardControl.Header>
+
+                <ui:ToggleSwitch
+                 IsChecked="{Binding Source={x:Static local:ConfigModel.Instance}, Path=Settings.CloseToTray}" />
+            </ui:CardControl>
+
+
+
+
+
+
             <ui:CardControl Margin="0,10,0,0">
                 <ui:CardControl.Icon>
                     <ui:SymbolIcon Symbol="ArrowMinimize20" />
@@ -519,39 +556,80 @@
 
         <StackPanel Margin="0,40,0,0">
             <Label
-                Margin="0,0,0,10"
-                Content="Misc"
-                FontSize="14"
-                FontWeight="Medium"
-                Foreground="{DynamicResource TextFillColorPrimaryBrush}" />
+            Margin="0,0,0,10"
+            Content="Misc"
+            FontSize="14"
+            FontWeight="Medium"
+            Foreground="{DynamicResource TextFillColorPrimaryBrush}" />
+
             <ui:CardControl>
                 <ui:CardControl.Icon>
                     <ui:SymbolIcon Symbol="WindowSettings20" />
                 </ui:CardControl.Icon>
+
                 <ui:CardControl.Header>
                     <Grid>
                         <Grid.ColumnDefinitions>
                             <ColumnDefinition Width="*" />
                             <ColumnDefinition Width="Auto" />
                         </Grid.ColumnDefinitions>
+
                         <StackPanel Grid.Column="0" VerticalAlignment="Center">
                             <TextBlock
-                                FontSize="13"
-                                FontWeight="Medium"
-                                Text="Application Data" />
+                        FontSize="13"
+                        FontWeight="Medium"
+                        Text="Application Data" />
                             <TextBlock
-                                Margin="0,5,0,0"
-                                FontSize="12"
-                                Foreground="{DynamicResource TextFillColorTertiaryBrush}"
-                                Text="Go to where all your data is stored. Backing up often is always a good thing." />
+                        Margin="0,5,0,0"
+                        FontSize="12"
+                        Foreground="{DynamicResource TextFillColorTertiaryBrush}"
+                        Text="Go to where all your data is stored. Backing up often is always a good thing." />
                         </StackPanel>
                     </Grid>
                 </ui:CardControl.Header>
-                <ui:Button
+
+                <!-- CONTENT -->
+                <StackPanel Margin="0,10,0,0">
+
+                    <!-- Open Folder Button -->
+                    <ui:Button
                     x:Name="ButtonOpenDataFolder"
                     Width="150"
+                    HorizontalAlignment="Left"
+                    Margin="0,0,0,12"
                     Click="ButtonOpenDataFolder_Click"
                     Content="Open Folder" />
+
+                    <Separator Margin="0,0,0,8" />
+
+                    <!-- Diagnostics Mode -->
+                    <Grid>
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="*" />
+                            <ColumnDefinition Width="Auto" />
+                        </Grid.ColumnDefinitions>
+
+                        <StackPanel Grid.Column="0">
+                            <TextBlock
+                        FontSize="13"
+                        FontWeight="Medium"
+                        Text="Diagnostics Mode" />
+                            <TextBlock
+                        Margin="0,4,25,0"
+                        FontSize="12"
+                        Foreground="{DynamicResource TextFillColorTertiaryBrush}"
+                        Text="Enable detailed logging for troubleshooting and support. Requires SynQPanel restart." />
+                        </StackPanel>
+
+                        <!-- Toggle (WPF-correct) -->
+                        <ui:ToggleSwitch
+                    Grid.Column="1"
+                    VerticalAlignment="Top"
+                    HorizontalAlignment="Right"
+                    IsChecked="{Binding Source={x:Static local:ConfigModel.Instance}, Path=Settings.DiagnosticsMode}" />
+                    </Grid>
+
+                </StackPanel>
             </ui:CardControl>
         </StackPanel>
 

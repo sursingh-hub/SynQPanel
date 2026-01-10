@@ -440,7 +440,9 @@ namespace SynQPanel.Views.Components
 
             switch (SensorType)
             {
-                
+
+               
+
                 case SensorType.Plugin:
                     if (SelectedSensorItem is PluginSensorItem pluginItem)
                         ReplacePluginSensor(pluginItem, selectedDisplayItem);
@@ -483,21 +485,21 @@ namespace SynQPanel.Views.Components
             {
                 chart.Name = sensorItem.Name;
                 chart.SensorName = sensorItem.Name;
-                chart.SensorType = SensorType.Aida;
+                chart.SensorType = SensorType.Plugin;
                 chart.PluginSensorId = idString;
             }
             else if (displayItem is GaugeDisplayItem gauge)
             {
                 gauge.Name = sensorItem.Name;
                 gauge.SensorName = sensorItem.Name;
-                gauge.SensorType = SensorType.Aida;
+                gauge.SensorType = SensorType.Plugin;
                 gauge.PluginSensorId = idString;
             }
             else if (displayItem is SensorImageDisplayItem simg)
             {
                 simg.Name = sensorItem.Name;
                 simg.SensorName = sensorItem.Name;
-                simg.SensorType = SensorType.Aida;
+                simg.SensorType = SensorType.Plugin;
                 simg.PluginSensorId = idString;
             }
         }
@@ -513,7 +515,7 @@ namespace SynQPanel.Views.Components
                 {
                     sensorDisplayItem.Name = aidaItem.Name;
                     sensorDisplayItem.SensorName = aidaItem.Name;
-                    sensorDisplayItem.SensorType = SensorType.Aida;
+                    sensorDisplayItem.SensorType = SensorType.Plugin;
                     sensorDisplayItem.PluginSensorId = idString;
                     try
                     {
@@ -530,35 +532,35 @@ namespace SynQPanel.Views.Components
                 {
                     chart.Name = aidaItem.Name;
                     chart.SensorName = aidaItem.Name;
-                    chart.SensorType = SensorType.Aida;
+                    chart.SensorType = SensorType.Plugin;
                     chart.PluginSensorId = idString;
                 }
                 else if (displayItem is GaugeDisplayItem gauge)
                 {
                     gauge.Name = aidaItem.Name;
                     gauge.SensorName = aidaItem.Name;
-                    gauge.SensorType = SensorType.Aida;
+                    gauge.SensorType = SensorType.Plugin;
                     gauge.PluginSensorId = idString;
                 }
                 else if (displayItem is SensorImageDisplayItem simg)
                 {
                     simg.Name = aidaItem.Name;
                     simg.SensorName = aidaItem.Name;
-                    simg.SensorType = SensorType.Aida;
+                    simg.SensorType = SensorType.Plugin;
                     simg.PluginSensorId = idString;
                 }
                 else if (displayItem is HttpImageDisplayItem httpimg)
                 {
                     httpimg.Name = aidaItem.Name;
                     httpimg.SensorName = aidaItem.Name;
-                    httpimg.SensorType = SensorType.Aida;
+                    httpimg.SensorType = SensorType.Plugin;
                     httpimg.PluginSensorId = idString;
                 }
                 else if (displayItem is TableSensorDisplayItem table)
                 {
                     table.Name = aidaItem.Name;
                     table.SensorName = aidaItem.Name;
-                    table.SensorType = SensorType.Aida;
+                    table.SensorType = SensorType.Plugin;
                     table.PluginSensorId = idString;
                     // TableFormat support if needed
                     if (SensorReader.ReadPluginSensor(idString) is SensorReading sr && sr.ValueTableFormat is string format)

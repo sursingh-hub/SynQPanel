@@ -123,9 +123,95 @@ namespace SynQPanel.ViewModels
                     ]
                 };
 
-            UpdateVersions.Add(version100);
-        }
+            var version101 =
+                new UpdateVersion
+                {
+                    Version = "v1.0.1",
+                    Expanded = false,
+                    Title = "Stability, diagnostics, and workflow improvements",
+                    Items =
+                    [
+                        new UpdateVersionItem
+                        {
+                            Title = "Rendering & Panel Accuracy",
+                            Description =
+                            [
+                                "Fixed background image rendering for BGIMG panels.",
+                                "Corrected STIME-based hour hand rendering in custom gauges.",
+                                "Improved rendering consistency across imported AIDA panels."
+                            ]
+                        },
 
+                        new UpdateVersionItem
+                        {
+                            Title = "AIDA Shared Memory Reliability",
+                            Description =
+                            [
+                                "Improved shared memory diagnostics and admin detection.",
+                                "Added centralized admin elevation checks.",
+                                "Enhanced diagnostics for missing or invisible sensors."
+                            ]
+                        },
+
+                        new UpdateVersionItem
+                        {
+                            Title = "Dynamic Shared Memory Mapping",
+                            Description =
+                            [
+                                "Removed dependency on a fixed shared memory buffer size.",
+                                "Mapped the full shared memory region dynamically.",
+                                "Eliminated XML truncation when sensor counts change.",
+                                "Improved future compatibility with AIDA updates."
+                            ]
+                        },
+
+                        new UpdateVersionItem
+                        {
+                            Title = "Diagnostics Mode & Log Improvements",
+                            Description =
+                            [
+                                "Reduced excessive diagnostic log output.",
+                                "Added a Diagnostics Mode toggle for verbose logging.",
+                                "Keeps logs clean during normal usage."
+                            ]
+                        },
+
+                        new UpdateVersionItem
+                        {
+                            Title = "Canvas Context Menu & Tray Behavior",
+                            Description =
+                            [
+                                "Added right-click context menu on the displayed sensorpanels.",
+                                "Quick navigation to SynQ Hub, Gallery, and Manager.",
+                                "Added Minimize, Close to Tray, and Hide Panel actions."
+                            ]
+                        },
+
+                        new UpdateVersionItem
+                        {
+                            Title = "AIDA $LABEL Macro Support",
+                            Description =
+                            [
+                                "Resolved supported AIDA-style $LABEL macros using system information.",
+                                "Normalized macro output to closely match AIDA.",
+                                "Unknown macros safely fall back to literal text."
+                            ]
+                        },
+
+                        new UpdateVersionItem
+                        {
+                            Title = "Stability Fixes",
+                            Description =
+                            [
+                                "Fixed duplicate and replace logic regression.",
+                                "Improved stability when working with complex imported panels."
+                            ]
+                        }
+                    ]
+                };
+            UpdateVersions.Add(version100);
+            UpdateVersions.Add(version101);
+        }
     }
 
     public class UpdateVersion()

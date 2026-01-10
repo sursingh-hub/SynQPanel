@@ -324,20 +324,6 @@ namespace SynQPanel.Views.Components
         }
 
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
         private void ToggleSwitch_Checked(object sender, RoutedEventArgs e)
         {
             ConfigModel.Instance.SaveProfiles();

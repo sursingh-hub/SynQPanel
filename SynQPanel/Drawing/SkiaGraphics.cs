@@ -204,55 +204,76 @@ namespace SynQPanel.Drawing
 
             tb.AddText(text, style);
 
-            // Adjust X position based on alignment and width
+            // Adjust X position
             float adjustedX = x;
             if (width == 0 && rightAlign)
                 adjustedX = x - tb.MeasuredWidth;
             else if (width > 0 && centerAlign)
                 adjustedX = x;
 
-            tb.Paint(Canvas, new SKPoint(adjustedX, y));
+            // 🔥 AIDA-style synthetic bold
+            if (bold && typeface.FontWeight < 500)
+            {
+                tb.Paint(Canvas, new SKPoint(adjustedX, y));
+                tb.Paint(Canvas, new SKPoint(adjustedX + 1, y)); // tiny offset
+            }
+            else
+            {
+                tb.Paint(Canvas, new SKPoint(adjustedX, y));
+            }
         }
 
         private static readonly ConcurrentDictionary<string, SKTypeface> _typefaceCache = [];
 
         public static SKTypeface CreateTypeface(string fontName, string fontStyle, bool bold, bool italic)
         {
-            string cacheKey = $"{fontName}-{fontStyle}-{bold}-{italic}";
+            string cacheKey = $"{fontName}-{bold}-{italic}";
 
             if (_typefaceCache.TryGetValue(cacheKey, out var cached))
-            {
                 return cached;
-            }
 
-            Logger.Debug("Typeface cache miss: {CacheKey}", cacheKey);
+            Logger.Debug(
+                "Typeface resolve: Family={Font}, Bold={Bold}, Italic={Italic}",
+                fontName, bold, italic
+            );
 
-            SKTypeface? result = null;
+            var weight = bold
+                ? SKFontStyleWeight.Bold
+                : SKFontStyleWeight.Normal;
 
-            if (string.IsNullOrEmpty(fontStyle))
+            var slant = italic
+                ? SKFontStyleSlant.Italic
+                : SKFontStyleSlant.Upright;
+
+            var width = SKFontStyleWidth.Normal;
+
+            var style = new SKFontStyle(weight, width, slant);
+
+            // Ask Skia explicitly for the correct face
+            var typeface = SKTypeface.FromFamilyName(fontName, style);
+
+            // HARD fallback: same family, normal style
+            if (typeface == null)
             {
-                result = LoadTypeface(fontName, bold, italic);
-            }
-            else
-            {
-                using var typeface = SKTypeface.FromFamilyName(fontName);
-                using var fontStyles = SKFontManager.Default.GetFontStyles(fontName);
+                Logger.Warning(
+                    "Typeface fallback to normal: {Font}",
+                    fontName
+                );
 
-                for (int i = 0; i < fontStyles.Count; i++)
-                {
-                    if (fontStyles.GetStyleName(i).Equals(fontStyle))
-                    {
-                        result = SKTypeface.FromFamilyName(fontName, fontStyles[i]);
-                        break;
-                    }
-                }
+                typeface = SKTypeface.FromFamilyName(
+                    fontName,
+                    SKFontStyle.Normal
+                );
             }
 
-            result ??= SKTypeface.CreateDefault();
+            // Absolute last fallback (should almost never hit)
+            typeface ??= SKTypeface.CreateDefault();
 
-            _typefaceCache.TryAdd(cacheKey, result);
-            return result;
+            _typefaceCache.TryAdd(cacheKey, typeface);
+            return typeface;
         }
+
+
 
         private static SKTypeface LoadTypeface(string fontName, bool bold, bool italic)
         {
