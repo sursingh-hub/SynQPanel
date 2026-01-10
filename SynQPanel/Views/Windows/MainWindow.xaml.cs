@@ -42,13 +42,14 @@ namespace SynQPanel.Views.Windows
             snackbarService.SetSnackbarPresenter(RootSnackbar);
             contentDialogService.SetDialogHost(RootContentDialog);
 
+            
             var version = Assembly.GetExecutingAssembly().GetName().Version?.ToString(3);
 
             if (version != null)
             {
                 RootTitleBar.Title = $"SynQPanel - v{version}";
             }
-
+            
             Loaded += MainWindow_Loaded;
             StateChanged += MainWindow_StateChanged;
 

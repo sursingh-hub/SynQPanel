@@ -1441,7 +1441,15 @@ namespace SynQPanel
                     var ITMX = item.GetIntValue("ITMX", 0);
                     var ITMY = item.GetIntValue("ITMY", 0);
 
-                    var LBL = item.GetStringValue("LBL", key);
+                    //var LBL = item.GetStringValue("LBL", key);
+
+                    var rawLabel = item.GetStringValue("LBL", key);
+                    var LBL = SystemMacroResolver.Resolve(rawLabel);
+                   
+
+
+
+
                     var TXTBIR = item.GetStringValue("TXTBIR", string.Empty);
                     var FNTNAM = item.GetStringValue("FNTNAM", "Arial");
                     var WID = item.GetIntValue("WID", 0);
@@ -1848,12 +1856,36 @@ namespace SynQPanel
                                         effectiveWID = WID;
                                     }
 
+                                    bold = false;
+                                    italic = false;
+                                    FontWeight fontWeight =
+                                    bold ? FontWeights.Bold : FontWeights.Normal;
+
+
+
+                                    var LBLBIS = item.GetStringValue("LBLBIS", string.Empty);
+
+                                    if (LBLBIS.Length == 3)
+                                    {
+                                        if (int.TryParse(LBLBIS.AsSpan(0, 1), out int _bold))
+                                            bold = _bold == 1;
+
+                                        if (int.TryParse(LBLBIS.AsSpan(1, 1), out int _italic))
+                                            italic = _italic == 1;
+                                    }
+
+
                                     // Create text item
                                     TextDisplayItem textDisplayItem = new(LBL, profile)
                                     {
                                         Font = ChooseAvailableFont(FNTNAM),
                                         FontSize = TXTSIZ,
                                         Color = DecimalBgrToHex(VALCOL),
+                                        Bold = bold,
+                                        Italic = italic,
+
+                                        FontWeight = fontWeight,
+
                                         RightAlign = rightAlign,
                                         X = ITMX,
                                         Y = ITMY,
@@ -2126,6 +2158,7 @@ namespace SynQPanel
 
         }
 
+        
         private static byte[] ConvertHexStringToByteArray(string hex)
         {
             if (hex.Length % 2 != 0)

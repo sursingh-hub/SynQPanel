@@ -468,7 +468,7 @@ namespace SynQPanel.Views.Components
                 var item = (DisplayItem)selectedItem.Clone();
 
                 // 🔑 Very important: mark as brand new, with no original .sensorpanel line
-                item.OriginalLineIndex = -1;
+               item.OriginalLineIndex = -1;
                 item.OriginalRawXml = null;
 
                 SharedModel.Instance.AddDisplayItem(item);

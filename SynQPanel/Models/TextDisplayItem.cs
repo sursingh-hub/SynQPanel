@@ -1,8 +1,9 @@
 ﻿using CommunityToolkit.Mvvm.ComponentModel;
-using SynQPanel.Drawing;
 using SkiaSharp;
+using SynQPanel.Drawing;
 using System;
 using System.Linq;
+using System.Windows;
 
 namespace SynQPanel.Models
 {
@@ -147,6 +148,7 @@ namespace SynQPanel.Models
         }
 
         public TextDisplayItem(string name, Profile profile) : base(name, profile) { }
+        public FontWeight FontWeight { get; set; } = FontWeights.Normal;
 
 
         public override string EvaluateText()
@@ -242,6 +244,8 @@ namespace SynQPanel.Models
                 SetProperty(ref _format, value);
             }
         }
+
+
 
         public CalendarDisplayItem()
         {

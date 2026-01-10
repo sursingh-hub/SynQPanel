@@ -255,6 +255,15 @@
           "runtime.native.System.IO.Ports": "9.0.10"
         }
       },
+      "System.Management": {
+        "type": "Direct",
+        "requested": "[8.0.0, )",
+        "resolved": "8.0.0",
+        "contentHash": "jrK22i5LRzxZCfGb+tGmke2VH7oE0DvcDlJ1HAKYU8cPmD8XnpUT0bYn2Gy98GEhGjtfbR/sxKTVb+dE770pfA==",
+        "dependencies": {
+          "System.CodeDom": "8.0.0"
+        }
+      },
       "TaskScheduler": {
         "type": "Direct",
         "requested": "[2.12.2, )",
@@ -627,19 +636,6 @@
         "resolved": "1.1.19",
         "contentHash": "5sPWkbqImc2t1aQwIfJcKsUo7tOg1Tr8+6xVzZJB56Nzt4u9NlpcLofgdX/aRYpPKdWDA3U23Akw1KQzU5e82g=="
       },
-      "NAudio.Core": {
-        "type": "Transitive",
-        "resolved": "2.2.1",
-        "contentHash": "GgkdP6K/7FqXFo7uHvoqGZTJvW4z8g2IffhOO4JHaLzKCdDOUEzVKtveoZkCuUX8eV2HAINqi7VFqlFndrnz/g=="
-      },
-      "NAudio.Wasapi": {
-        "type": "Transitive",
-        "resolved": "2.2.1",
-        "contentHash": "lFfXoqacZZe0WqNChJgGYI+XV/n/61LzPHT3C1CJp4khoxeo2sziyX5wzNYWeCMNbsWxFvT3b3iXeY1UYjBhZw==",
-        "dependencies": {
-          "NAudio.Core": "2.2.1"
-        }
-      },
       "Newtonsoft.Json": {
         "type": "Transitive",
         "resolved": "13.0.3",
@@ -739,14 +735,6 @@
         "dependencies": {
           "OpenTK.Core": "[4.3.0, 4.4.0)",
           "OpenTK.redist.glfw": "[3.3.0-pre20200830200122, 3.4.0-pre)"
-        }
-      },
-      "OpenWeatherMap.Standard": {
-        "type": "Transitive",
-        "resolved": "3.0.91",
-        "contentHash": "8WAmpABokiTx82MyZ9z3CsSMNeV+5+a/MnbYmZ/40oVV6/ElUfQEj4eb54EHPOTD99cjcCCEh98hrGhs50uoqA==",
-        "dependencies": {
-          "Newtonsoft.Json": "13.0.3"
         }
       },
       "runtime.android-arm.runtime.native.System.IO.Ports": {
@@ -930,6 +918,11 @@
           "Svg.Custom": "3.2.1"
         }
       },
+      "System.CodeDom": {
+        "type": "Transitive",
+        "resolved": "8.0.0",
+        "contentHash": "WTlRjL6KWIMr/pAaq3rYqh0TJlzpouaQ/W1eelssHgtlwHAH25jXTkUphTYx9HaIIf7XA6qs/0+YhtLEQRkJ+Q=="
+      },
       "System.Configuration.ConfigurationManager": {
         "type": "Transitive",
         "resolved": "9.0.10",
@@ -1076,29 +1069,6 @@
           "Vortice.DirectX": "3.7.6-beta"
         }
       },
-      "SynQPanel.plugins": {
-        "type": "Project"
-      },
-      "SynQPanel.plugins.loader": {
-        "type": "Project",
-        "dependencies": {
-          "SynQPanel.Plugins": "[1.0.0, )",
-          "Serilog": "[4.3.0, )",
-          "ini-parser-netstandard": "[2.5.3, )"
-        }
-      },
-      "synqpanel.extras": {
-        "type": "Project",
-        "dependencies": {
-          "NAudio.Wasapi": "[2.2.1, )",
-          "OpenWeatherMap.Standard": "[3.0.91, )",
-          "Sentry": "[5.16.1, )",
-          "Serilog": "[4.3.0, )",
-          "SynQPanel.Plugins": "[1.0.0, )",
-          "System.Diagnostics.PerformanceCounter": "[9.0.10, )",
-          "ini-parser-netstandard": "[2.5.3, )"
-        }
-      },
       "synqpanel.plugins": {
         "type": "Project"
       },
@@ -1134,6 +1104,15 @@
         "contentHash": "jMvwu+NOk/+vlOzTp9vpxIeGq+yRA+3EbkmpLMs37AAy9cI8YlY/ntTHL00w26Tvu6cIkx0/TdjmeHm0l99Nqw==",
         "dependencies": {
           "runtime.native.System.IO.Ports": "9.0.10"
+        }
+      },
+      "System.Management": {
+        "type": "Direct",
+        "requested": "[8.0.0, )",
+        "resolved": "8.0.0",
+        "contentHash": "jrK22i5LRzxZCfGb+tGmke2VH7oE0DvcDlJ1HAKYU8cPmD8XnpUT0bYn2Gy98GEhGjtfbR/sxKTVb+dE770pfA==",
+        "dependencies": {
+          "System.CodeDom": "8.0.0"
         }
       },
       "HarfBuzzSharp.NativeAssets.Linux": {
