@@ -361,6 +361,7 @@ namespace SynQPanel
                             Settings.MinimizeToTray = settings.MinimizeToTray;
 
                             Settings.CloseToTray = settings.CloseToTray;
+                            Settings.DiagnosticsMode = settings.DiagnosticsMode;
 
 
                             Settings.SelectedItemColor = settings.SelectedItemColor;

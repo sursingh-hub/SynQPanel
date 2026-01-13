@@ -454,23 +454,83 @@ namespace SynQPanel.Drawing
                                 var scaledHeight = gaugeDisplayItem.Height;
 
                                 if (scaledWidth == 0)
-                                {
                                     scaledWidth = cachedImage.Width;
-                                }
 
                                 if (scaledHeight == 0)
-                                {
                                     scaledHeight = cachedImage.Height;
+
+                                scaledWidth = (int)Math.Floor(
+                                    scaledWidth * gaugeDisplayItem.Scale / 100.0f * scale
+                                );
+                                scaledHeight = (int)Math.Floor(
+                                    scaledHeight * gaugeDisplayItem.Scale / 100.0f * scale
+                                );
+
+                                g.DrawImage(
+                                    cachedImage,
+                                    x,
+                                    y,
+                                    scaledWidth,
+                                    scaledHeight,
+                                    0,
+                                    0,
+                                    0,
+                                    cache,
+                                    cacheHint
+                                );
+
+                                // ✅ PHASE 1: draw value text (NO unit, default style only)
+                                if (gaugeDisplayItem.ShowValue)
+                                {
+                                    var reading = gaugeDisplayItem.GetValue();
+                                    if (reading != null)
+                                    {
+                                        string text = FormatSensorReading(reading.Value, includeUnit: false);
+
+                                        // ✅ pick font safely (ValueFontName already populated)
+                                        string font =
+                                            !string.IsNullOrWhiteSpace(gaugeDisplayItem.ValueFontName)
+                                                ? gaugeDisplayItem.ValueFontName
+                                                : "";
+
+                                        // ✅ APPLY SCALE (this was missing)
+                                        int scaledTextSize =
+                                            (int)Math.Round(gaugeDisplayItem.ValueTextSize * scale);
+
+                                        // ✅ measure text height using SCALED size
+                                        var textSize = g.MeasureString(
+                                            text,
+                                            font,
+                                            "",
+                                            scaledTextSize,
+                                            bold: gaugeDisplayItem.ValueBold,
+                                            italic: gaugeDisplayItem.ValueItalic
+                                        );
+
+                                        int textX = x;
+                                        int textY = y + (int)((scaledHeight - textSize.height) / 2);
+
+                                        g.DrawString(
+                                            text,
+                                            font,
+                                            "",
+                                            scaledTextSize,
+                                            gaugeDisplayItem.ValueColor,
+                                            textX,
+                                            textY,
+                                            centerAlign: true,
+                                            bold: gaugeDisplayItem.ValueBold,
+                                            italic: gaugeDisplayItem.ValueItalic,
+                                            width: scaledWidth
+                                        );
+                                    }
                                 }
-
-                                scaledWidth = (int)Math.Floor(scaledWidth * gaugeDisplayItem.Scale / 100.0f * scale);
-                                scaledHeight = (int)Math.Floor(scaledHeight * gaugeDisplayItem.Scale / 100.0f * scale);
-
-                                g.DrawImage(cachedImage, x, y, scaledWidth, scaledHeight, 0, 0, 0, cache, cacheHint);
                             }
                         }
                         break;
                     }
+
+
                 case ChartDisplayItem chartDisplayItem:
                     {
                         var width = scale == 1 ? (int)chartDisplayItem.Width : (int)Math.Floor(chartDisplayItem.Width * scale);
@@ -1052,13 +1112,13 @@ namespace SynQPanel.Drawing
             // Adjust parameter order or types to match your caller as needed.
             // Skia-friendly arc renderer
             public static void DrawArcDisplayItem(
-    SynQPanel.Drawing.SkiaGraphics g,
-    bool preview,
-    float scale,
-    object cache,
-    object cacheHint,
-    ArcDisplayItem arc,
-    System.Collections.Generic.IList<SynQPanel.Drawing.SelectedRectangle> selectedRectangles)
+            SynQPanel.Drawing.SkiaGraphics g,
+            bool preview,
+            float scale,
+            object cache,
+            object cacheHint,
+            ArcDisplayItem arc,
+            System.Collections.Generic.IList<SynQPanel.Drawing.SelectedRectangle> selectedRectangles)
             {
                 try
                 {
@@ -1323,6 +1383,22 @@ namespace SynQPanel.Drawing
                 return null;
             }
         }
+
+        private static string FormatSensorReading(
+            SensorReading reading,
+            bool includeUnit = true)
+        {
+            if (reading.ValueText != null)
+                return reading.ValueText;
+
+            string value = reading.ValueNow.ToString("0.##");
+
+            if (includeUnit && !string.IsNullOrWhiteSpace(reading.Unit))
+                return $"{value}{reading.Unit}";
+
+            return value;
+        }
+
 
 
 

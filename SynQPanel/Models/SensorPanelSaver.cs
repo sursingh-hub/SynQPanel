@@ -231,6 +231,52 @@ namespace SynQPanel.Models
                                             if (staflsElement != null)
                                                 staflsElement.Value = existingStafls;
                                         }
+
+
+                                        // --- Gauge value text (AIDA compatible) ---
+                                        try
+                                        {
+                                            SetOrCreateChildValue(root, "SHWVAL", g.ShowValue ? "1" : "0");
+
+                                            if (g.ShowValue)
+                                            {
+                                                SetOrCreateChildValue(
+                                                    root,
+                                                    "TXTSIZ",
+                                                    (g.ValueTextSize > 0 ? g.ValueTextSize : 12)
+                                                        .ToString(CultureInfo.InvariantCulture)
+                                                );
+
+                                                SetOrCreateChildValue(
+                                                    root,
+                                                    "FNTNAM",
+                                                    string.IsNullOrWhiteSpace(g.ValueFontName)
+                                                        ? "Segoe UI"
+                                                        : g.ValueFontName
+                                                );
+
+                                                int valCol = HexToDecimalBgr(g.ValueColor);
+                                                SetOrCreateChildValue(root, "VALCOL", valCol.ToString());
+
+                                                char b = g.ValueBold ? '1' : '0';
+                                                char i = g.ValueItalic ? '1' : '0';
+                                                SetOrCreateChildValue(root, "VALBI", $"{b}{i}");
+                                            }
+                                            else
+                                            {
+                                                // AIDA still expects defaults even when hidden
+                                                SetOrCreateChildValue(root, "TXTSIZ", "12");
+                                                SetOrCreateChildValue(root, "FNTNAM", "Segoe UI");
+                                                SetOrCreateChildValue(root, "VALCOL", "16777215");
+                                                SetOrCreateChildValue(root, "VALBI", "00");
+                                            }
+                                        }
+                                        catch (Exception ex)
+                                        {
+                                            DevTrace.Write($"[SensorPanelSaver] Gauge value text write error: {ex.Message}");
+                                        }
+
+
                                     }
                                 }
                                 catch (Exception ex)
@@ -977,9 +1023,9 @@ namespace SynQPanel.Models
 
             // write only non-null lines
             File.WriteAllLines(
-      tempPath,
-      outLines.Where(l => l != null).ToArray(),
-      encoding);
+          tempPath,
+          outLines.Where(l => l != null).ToArray(),
+          encoding);
 
 
             try
@@ -1422,18 +1468,40 @@ namespace SynQPanel.Models
                 sb.Append("<MINVAL>").Append((int)g.MinValue).Append("</MINVAL>");
                 sb.Append("<MAXVAL>").Append((int)g.MaxValue).Append("</MAXVAL>");
 
-                // Hide icon + value by default (you can tweak later)
+                // ───── Gauge value text (AIDA-compatible) ─────
                 sb.Append("<SHWICO>0</SHWICO>");
-                sb.Append("<SHWVAL>0</SHWVAL>");
+                sb.Append("<SHWVAL>").Append(g.ShowValue ? 1 : 0).Append("</SHWVAL>");
 
-                // Text size and font for the value – rough defaults
-                int txtSize = 40;
-                sb.Append("<TXTSIZ>").Append(txtSize).Append("</TXTSIZ>");
-                sb.Append("<FNTNAM>").Append(fontName).Append("</FNTNAM>");
+                if (g.ShowValue)
+                {
+                    // Text size
+                    sb.Append("<TXTSIZ>")
+                      .Append(g.ValueTextSize > 0 ? g.ValueTextSize : 12)
+                      .Append("</TXTSIZ>");
 
-                // Value color & bold/italic flags
-                sb.Append("<VALCOL>").Append(valColorDec).Append("</VALCOL>");
-                sb.Append("<VALBI>10</VALBI>"); // '1' bold, '0' italic (like example "10")
+                    // Font name
+                    sb.Append("<FNTNAM>")
+                      .Append(string.IsNullOrWhiteSpace(g.ValueFontName) ? "Segoe UI" : g.ValueFontName)
+                      .Append("</FNTNAM>");
+
+                    // Color (convert hex → decimal BGR)
+                    int valCol = HexToDecimalBgr(g.ValueColor);
+                    sb.Append("<VALCOL>").Append(valCol).Append("</VALCOL>");
+
+                    // Bold / Italic flags (AIDA format)
+                    char bo = g.ValueBold ? '1' : '0';
+                    char i = g.ValueItalic ? '1' : '0';
+                    sb.Append("<VALBI>").Append(bo).Append(i).Append("</VALBI>");
+                }
+                else
+                {
+                    // AIDA still writes defaults even if hidden
+                    sb.Append("<TXTSIZ>12</TXTSIZ>");
+                    sb.Append("<FNTNAM>Segoe UI</FNTNAM>");
+                    sb.Append("<VALCOL>16777215</VALCOL>");
+                    sb.Append("<VALBI>00</VALBI>");
+                }
+
 
                 // Now the state count
                 sb.Append("<MAXSTA>").Append(maxSta).Append("</MAXSTA>");

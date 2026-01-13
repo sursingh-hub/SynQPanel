@@ -1544,11 +1544,11 @@ namespace SynQPanel
                                 }
 
                                 // --- AIDA mapping block ---
-                                string rawPanelKey = item.GetStringValue("ID", "").Trim();
-                                string panelSensorKey = rawPanelKey
-                                    .Replace("[GRAPH]", "")
-                                    .TrimStart('-')
-                                    .Trim();
+                                 string rawPanelKey = item.GetStringValue("ID", "").Trim();
+                                 string panelSensorKey = rawPanelKey
+                                     .Replace("[GRAPH]", "")
+                                     .TrimStart('-')
+                                     .Trim();
 
                                 string aidaSensorId = "unknown";
                                 var aidaSensor = AidaMonitor.LatestSensors
@@ -1633,6 +1633,33 @@ namespace SynQPanel
                             Hidden = hidden
                         };
 
+                        
+                        
+                        // ───── AIDA Gauge Value Text  ─────
+                        gaugeDisplayItem.ShowValue = item.GetIntValue("SHWVAL", 0) == 1;
+
+                        if (gaugeDisplayItem.ShowValue)
+                        {
+                            gaugeDisplayItem.ValueTextSize =
+                                item.GetIntValue("TXTSIZ", 0);
+
+                             gaugeDisplayItem.ValueFontName = item.GetStringValue("FNTNAM", string.Empty);
+
+                            gaugeDisplayItem.ValueColor =
+                                DecimalBgrToHex(item.GetIntValue("VALCOL", 0));
+
+                            var VALBI = item.GetStringValue("VALBI", "00");
+                            if (VALBI.Length >= 2)
+                            {
+                                gaugeDisplayItem.ValueBold = VALBI[0] == '1';
+                                gaugeDisplayItem.ValueItalic = VALBI[1] == '1';
+                            }
+                        }
+
+
+
+
+
                         // If this is the "Custom/CustomN + STAFLS has assets" case, load images into the gaugeImages set
                         if ((string.Equals(TYP, "Custom", StringComparison.OrdinalIgnoreCase) ||
                              string.Equals(TYP, "CustomN", StringComparison.OrdinalIgnoreCase)) &&
@@ -1640,15 +1667,31 @@ namespace SynQPanel
                         {
                             try
                             {
+
+                                
                                 foreach (var image in STAFLS.Split('|', StringSplitOptions.RemoveEmptyEntries))
                                 {
-                                    
-                                    
+
+
                                     string imagePath = System.IO.Path.Combine(assetFolder, image.Trim()); // <-- use assetFolder passed to import
+
                                     ImageDisplayItem imageDisplayItem = new(imagePath, profile, image.Trim(), true);
+
+                                   
                                     
+                                    /*
+                                    string assetName = image.Trim()
+                                   .Replace("&", "_");   // normalize identifier ONLY
+
+                                    ImageDisplayItem imageDisplayItem =
+                                        new(imagePath, profile, assetName, true);
+                                    */
+
+
+
                                     gaugeDisplayItem.Images.Add(imageDisplayItem);
                                 }
+                                
                             }
                             catch (Exception ex)
                             {
@@ -1661,12 +1704,14 @@ namespace SynQPanel
                             // Non-custom gauge (e.g. TYP="White") - keep defaults, renderer will draw fallback visuals
                         }
 
+
+                        // Allow STIME to behave as a virtual numeric sensor
                         if (aidaSensor != null)
                         {
                             gaugeDisplayItem.SensorType = SynQPanel.Enums.SensorType.Plugin;
                             gaugeDisplayItem.PluginSensorId = aidaSensorId;
                         }
-
+                        
                         // attach provenance
                         AttachProvenance(gaugeDisplayItem, item);
 
@@ -1919,7 +1964,7 @@ namespace SynQPanel
                                     displayItems.Add(calendarDisplayItem);
                                 }
                                 break;
-
+                            
                             case "STIME":
                             case "STIMENS":
                                 {
@@ -1942,11 +1987,13 @@ namespace SynQPanel
                                     displayItems.Add(clockDisplayItem);
                                 }
                                 break;
+
                             default:
                                 {
 
                                     var SHWLBL = item.GetIntValue("SHWLBL", 0);
 
+                                    
                                     if (SHWLBL == 1)
                                     {
                                         var LBLBIS = item.GetStringValue("LBLBIS", string.Empty);
@@ -2024,6 +2071,12 @@ namespace SynQPanel
                                             Unit = UNT,
                                             ShowUnit = SHWUNT == 1,
                                             OverrideUnit = SHWUNT == 1,
+
+                                            Name = LBL,
+                                            ShowName = SHWLBL == 1,
+
+
+
                                             Bold = bold,
                                             Italic = italic,
                                             RightAlign = rightAlign,
@@ -2508,6 +2561,7 @@ namespace SynQPanel
         }
 
 
+       
 
 
 

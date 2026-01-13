@@ -61,7 +61,7 @@ namespace SynQPanel
                //retainedFileCountLimit: 7,
                //fileSizeLimitBytes: 104857600, // 100MB
 
-               retainedFileCountLimit: 3,
+               retainedFileCountLimit: 2,
                fileSizeLimitBytes: 10 * 1024 * 1024,
 
                rollOnFileSizeLimit: true,

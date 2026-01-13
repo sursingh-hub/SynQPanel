@@ -11,6 +11,77 @@ namespace SynQPanel.Models
     public partial class GaugeDisplayItem : DisplayItem, ISensorItem
     {
 
+
+
+        // ─────────────────────────────────────────────
+        // AIDA Gauge Value Text (Model-only, Phase 1)
+        // ─────────────────────────────────────────────
+
+        // AIDA Gauge "Show Value" support
+        //public bool ShowValue { get; set; }              // SHWVAL
+        public int ValueTextSize { get; set; } = 12;     // TXTSIZ
+        public bool ValueBold { get; set; }               // VALBI[0]
+        public bool ValueItalic { get; set; }             // VALBI[1]
+        public string ValueColor { get; set; } = "#FFFFFF";   // VALCOL (hex)
+
+        private string _valueFontName = string.Empty;
+        public string ValueFontName     // FNTNAM
+        {
+            get => _valueFontName;
+            set => SetProperty(ref _valueFontName, value);
+        }
+
+
+        private bool _showValue;
+        private bool _valueTextInitialized;
+        private bool _initializingValueText;
+
+
+        public bool ShowValue
+        {
+            get => _showValue;
+            set
+            {
+                if (_showValue == value)
+                    return;
+
+                _showValue = value;
+                OnPropertyChanged();
+
+                // IMPORTANT: do NOT mutate other bound properties synchronously
+                if (_showValue && !_valueTextInitialized && !_initializingValueText)
+                {
+                    _initializingValueText = true;
+
+                    // Defer to UI dispatcher to avoid layout re-entrancy
+                    System.Windows.Application.Current.Dispatcher.BeginInvoke(
+                        new Action(() =>
+                        {
+                            try
+                            {
+                                if (string.IsNullOrWhiteSpace(ValueFontName))
+                                    ValueFontName = "Segoe UI";
+
+                                if (ValueTextSize <= 0)
+                                    ValueTextSize = 12;
+
+                                _valueTextInitialized = true;
+                            }
+                            finally
+                            {
+                                _initializingValueText = false;
+                            }
+                        }),
+                        System.Windows.Threading.DispatcherPriority.Background
+                    );
+                }
+            }
+        }
+
+
+
+
+
         private string _sensorName = String.Empty;
         public string SensorName
         {
@@ -204,6 +275,7 @@ namespace SynQPanel.Models
             Id = id;
             Instance = instance;
             EntryId = entryId;
+
         }
 
         public SensorReading? GetValue()

@@ -75,6 +75,24 @@ namespace SynQPanel.Models
             }
         }
 
+        public string DisplayName
+        {
+            get
+            {
+                // 1️ Prefer original SPZIP name (user-facing)
+                if (!string.IsNullOrWhiteSpace(ImportedSensorPackagePath))
+                    return Path.GetFileNameWithoutExtension(ImportedSensorPackagePath);
+
+                // 2️ Fallback to imported SP2 name
+                if (!string.IsNullOrWhiteSpace(ImportedSensorPanelPath))
+                    return Path.GetFileNameWithoutExtension(ImportedSensorPanelPath);
+
+                // 3️ Final fallback: existing profile name
+                return Name;
+            }
+        }
+
+
         private int _width = 600;
 
         public int Width

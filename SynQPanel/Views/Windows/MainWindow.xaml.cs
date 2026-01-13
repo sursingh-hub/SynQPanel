@@ -220,6 +220,10 @@ namespace SynQPanel.Views.Windows
             // 🔴 CASE 1: Close-to-tray enabled AND this is NOT an explicit exit
             if (!_allowRealClose && ConfigModel.Instance.Settings.CloseToTray)
             {
+
+                // 🔑 SAVE SETTINGS BEFORE HIDING
+                ConfigModel.Instance.SaveSettings();
+
                 e.Cancel = true;
                 Hide();
                 return;
@@ -227,6 +231,8 @@ namespace SynQPanel.Views.Windows
 
             // 🔵 CASE 2: REAL shutdown (tray exit / Windows shutdown / explicit close)
             e.Cancel = true; // keep async-safe pattern
+
+            ConfigModel.Instance.SaveSettings();
 
             if (WindowState != WindowState.Minimized)
             {

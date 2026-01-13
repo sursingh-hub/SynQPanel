@@ -209,8 +209,63 @@ namespace SynQPanel.ViewModels
                         }
                     ]
                 };
+
+             var version102 =
+                new UpdateVersion
+                {
+                    Version = "v1.0.2",
+                    Expanded = false,
+                    Title = "Stability fixes, gauge enhancements, and settings persistence",
+                    Items =
+                    [
+                        new UpdateVersionItem
+                        {
+                            Title = "Gauge Labels & Font Handling",
+                            Description =
+                            [
+                                "Fixed broken Bold and Italic rendering for text value.",
+                                "Gauge label font family, size, bold, and italic are now correctly imported from AIDA.",
+                                "Gauge label settings can now be fully adjusted inside SynQPanel and saved back correctly.",
+                                "Improved consistency between SynQPanel canvas rendering and AIDA panel behavior."
+                            ]
+                        },
+
+                        new UpdateVersionItem
+                        {
+                            Title = "UI & Profile Display Improvements",
+                            Description =
+                            [
+                                "UI now displays the original .spzip (sensor panel) name instead of the internal .sp2 filename.",
+                                "Improved profile name handling across gallery, manager, and export workflows.",
+                                "Reduced confusion between imported package names and internal panel files."
+                            ]
+                        },
+
+                        new UpdateVersionItem
+                        {
+                            Title = "Settings Persistence & Reliability",
+                            Description =
+                            [
+                                "Fixed Close to Tray setting not persisting after application restart.",
+                                "Fixed Diagnostics mode toggle not being restored correctly on startup.",
+                                "Improved shutdown handling to ensure settings are saved reliably."
+                            ]
+                        },
+
+                        new UpdateVersionItem
+                        {
+                            Title = "General Stability Improvements",
+                            Description =
+                            [
+                                "Improved internal save logic to prevent missed updates during shutdown.",
+                                "Minor stability and workflow improvements across the application."
+                            ]
+                        }
+                    ]
+                };
             UpdateVersions.Add(version100);
             UpdateVersions.Add(version101);
+            UpdateVersions.Add(version102);
         }
     }
 

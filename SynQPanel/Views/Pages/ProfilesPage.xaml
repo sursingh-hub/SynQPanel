@@ -111,7 +111,7 @@
                     </Grid.ColumnDefinitions>
 
                     <Label>
-                        <TextBlock FontWeight="Medium" Text="{Binding ViewModel.Profile, Converter={StaticResource SelectedItemTextConverter}, Mode=OneWay}" />
+                        <TextBlock FontWeight="Medium" Text="{Binding ViewModel.Profile.DisplayName, Mode=OneWay}" />
                     </Label>
                 </Grid>
             </Expander.Header>
@@ -199,7 +199,33 @@
 
                                 <StackPanel Grid.Column="0" Margin="0,0,10,0">
                                     <StackPanel Margin="0,0,0,0">
-                                        <TextBox MaxLength="25" Text="{Binding Name}" />
+                                        <!-- <TextBox MaxLength="25" Text="{Binding Name}" /> -->
+
+                                        <Grid>
+                                            <!-- REAL TextBox (logic, persistence, editing target) -->
+                                            <TextBox
+                                            MaxLength="25"
+                                            Text="{Binding Name}"
+                                            Opacity="0"
+                                            IsHitTestVisible="True" />
+
+                                            <!-- UI-only overlay showing DisplayName -->
+                                            <Border
+                                            Background="{DynamicResource CardBackgroundFillColorDefaultBrush}"
+                                            CornerRadius="4"
+                                            Padding="4"
+                                            IsHitTestVisible="False">
+
+                                            <TextBlock
+                                            Text="{Binding DisplayName}"
+                                            VerticalAlignment="Center"
+                                            TextTrimming="CharacterEllipsis" />
+                                            </Border>
+                                        </Grid>
+
+
+
+
                                         <TextBlock
                                             Margin="5,0,0,0"
                                             FontSize="12"

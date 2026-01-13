@@ -1,8 +1,11 @@
-﻿using SynQPanel.Models;
+﻿using Serilog;
+using SkiaSharp;
+using SynQPanel.Models;
 using SynQPanel.Views.Components.Custom;
 using System;
-using Serilog;
+using System.Collections.ObjectModel;
 using System.IO;
+using System.Linq;
 using System.Windows;
 using System.Windows.Forms;
 using System.Windows.Threading;
@@ -24,6 +27,9 @@ namespace SynQPanel.Views.Components
             set { SetValue(ItemProperty, value); }
         }
 
+        public ObservableCollection<string> InstalledFonts { get; } = new();
+
+
         //to fix swapping view not refreshing when items empty etc
         public GaugePropertiesVM ViewModel { get; set; }
 
@@ -34,6 +40,7 @@ namespace SynQPanel.Views.Components
             ViewModel= new GaugePropertiesVM();
 
             InitializeComponent();
+           LoadAllFonts();
             Unloaded += CustomProperties_Unloaded;
 
             UpdateTimer = new(DispatcherPriority.Render) { Interval = TimeSpan.FromMilliseconds(100) };
@@ -178,6 +185,36 @@ namespace SynQPanel.Views.Components
                 }
             }
         }
+
+        private void LoadAllFonts()
+        {
+            InstalledFonts.Clear();
+
+            var fontManager = SKFontManager.Default;
+
+            foreach (var family in fontManager.GetFontFamilies())
+            {
+                // ✅ ALWAYS add base family name first
+                if (!InstalledFonts.Contains(family))
+                    InstalledFonts.Add(family);
+
+                var styles = fontManager.GetFontStyles(family);
+
+                for (int i = 0; i < styles.Count; i++)
+                {
+                    var styleName = styles.GetStyleName(i);
+
+                    if (string.IsNullOrWhiteSpace(styleName))
+                        continue;
+
+                    string fullName = $"{family} {styleName}";
+
+                    if (!InstalledFonts.Contains(fullName))
+                        InstalledFonts.Add(fullName);
+                }
+            }
+        }
+
 
 
     }

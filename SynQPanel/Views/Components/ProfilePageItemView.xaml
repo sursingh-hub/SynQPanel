@@ -37,7 +37,8 @@
                                 <ColumnDefinition Width="auto" />
                             </Grid.ColumnDefinitions>
                             <Label Margin="10,10,10,10">
-                                <TextBlock Text="{Binding Name}" TextTrimming="CharacterEllipsis" />
+                                <TextBlock Text="{Binding DisplayName}" TextTrimming="CharacterEllipsis" />
+                               <!-- <TextBlock Text="{Binding Name}" TextTrimming="CharacterEllipsis" /> -->
                             </Label>
                             <ui:ToggleSwitch
                                 Grid.Column="1"
@@ -58,12 +59,12 @@
 
                 <ui:Button
                     Name="ButtonExportSqx"
-                Margin="109,10,0,0"
-    VerticalAlignment="Top"
-    Appearance="Success"
-    Click="ButtonExportSqx_Click"
-    Content="Export .sqx"
-    Visibility="{Binding IsSelected, Converter={StaticResource BooleanToVisibilityConverter}, Mode=OneWay}" Background="#FF00A9A9" Width="98" >
+                    Margin="109,10,0,0"
+                    VerticalAlignment="Top"
+                    Appearance="Success"
+                    Click="ButtonExportSqx_Click"
+                    Content="Export .sqx"
+                    Visibility="{Binding IsSelected, Converter={StaticResource BooleanToVisibilityConverter}, Mode=OneWay}" Background="#FF00A9A9" Width="98" >
                     <ui:Button.PressedBackground>
                         <SolidColorBrush Color="#FF00DEDE" Opacity="0.7"/>
                     </ui:Button.PressedBackground>

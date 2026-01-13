@@ -13,6 +13,7 @@ namespace SynQPanel.ViewModels
 
         private bool _updateCheckInProgress = false;
 
+
         public bool UpdateCheckInProgress
         {
             get { return _updateCheckInProgress; }

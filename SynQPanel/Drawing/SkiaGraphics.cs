@@ -12,12 +12,12 @@ using System.Diagnostics;
 
 namespace SynQPanel.Drawing
 {
-    internal partial class SkiaGraphics(SKCanvas? canvas, float fontScale): IDisposable
+    internal partial class SkiaGraphics(SKCanvas? canvas, float fontScale) : IDisposable
     {
         private static readonly ILogger Logger = Log.ForContext<SkiaGraphics>();
         public readonly SKCanvas Canvas = canvas!;
         private readonly GRContext? GRContext = canvas?.Context as GRContext;
-        public readonly float FontScale = fontScale; 
+        public readonly float FontScale = fontScale;
 
         public bool OpenGL => GRContext != null;
 
@@ -103,7 +103,8 @@ namespace SynQPanel.Drawing
             {
                 lockedImage.AccessSK(width, height, bitmap =>
                 {
-                    if (bitmap != null) { 
+                    if (bitmap != null)
+                    {
                         DrawImage(bitmap, x, y, width, height, rotation, rotationCenterX, rotationCenterY);
                     }
                 }, cache, cacheHint, GRContext);
@@ -133,7 +134,7 @@ namespace SynQPanel.Drawing
                 Style = SKPaintStyle.Stroke
             };
 
-            if(gradientColor.HasValue)
+            if (gradientColor.HasValue)
             {
                 using var shader = CreateGradient(path, color, gradientColor.Value, gradientColor2, gradientAngle, gradientType);
                 if (shader != null)
@@ -181,15 +182,15 @@ namespace SynQPanel.Drawing
                 MaxLines = wrap ? 1 : null,
                 MaxWidth = width > 0 ? width : null
             };
-            
+
             if (rightAlign)
                 tb.Alignment = TextAlignment.Right;
-            
-            if (centerAlign && width > 0) 
+
+            if (centerAlign && width > 0)
                 tb.Alignment = TextAlignment.Center;
-            
+
             SKTypeface typeface = CreateTypeface(fontName, fontStyle, bold, italic);
-           
+
             var style = new Style
             {
                 FontFamily = typeface.FamilyName,
@@ -204,76 +205,55 @@ namespace SynQPanel.Drawing
 
             tb.AddText(text, style);
 
-            // Adjust X position
+            // Adjust X position based on alignment and width
             float adjustedX = x;
             if (width == 0 && rightAlign)
                 adjustedX = x - tb.MeasuredWidth;
             else if (width > 0 && centerAlign)
                 adjustedX = x;
 
-            // 🔥 AIDA-style synthetic bold
-            if (bold && typeface.FontWeight < 500)
-            {
-                tb.Paint(Canvas, new SKPoint(adjustedX, y));
-                tb.Paint(Canvas, new SKPoint(adjustedX + 1, y)); // tiny offset
-            }
-            else
-            {
-                tb.Paint(Canvas, new SKPoint(adjustedX, y));
-            }
+            tb.Paint(Canvas, new SKPoint(adjustedX, y));
         }
 
         private static readonly ConcurrentDictionary<string, SKTypeface> _typefaceCache = [];
 
         public static SKTypeface CreateTypeface(string fontName, string fontStyle, bool bold, bool italic)
         {
-            string cacheKey = $"{fontName}-{bold}-{italic}";
+            string cacheKey = $"{fontName}-{fontStyle}-{bold}-{italic}";
 
             if (_typefaceCache.TryGetValue(cacheKey, out var cached))
-                return cached;
-
-            Logger.Debug(
-                "Typeface resolve: Family={Font}, Bold={Bold}, Italic={Italic}",
-                fontName, bold, italic
-            );
-
-            var weight = bold
-                ? SKFontStyleWeight.Bold
-                : SKFontStyleWeight.Normal;
-
-            var slant = italic
-                ? SKFontStyleSlant.Italic
-                : SKFontStyleSlant.Upright;
-
-            var width = SKFontStyleWidth.Normal;
-
-            var style = new SKFontStyle(weight, width, slant);
-
-            // Ask Skia explicitly for the correct face
-            var typeface = SKTypeface.FromFamilyName(fontName, style);
-
-            // HARD fallback: same family, normal style
-            if (typeface == null)
             {
-                Logger.Warning(
-                    "Typeface fallback to normal: {Font}",
-                    fontName
-                );
-
-                typeface = SKTypeface.FromFamilyName(
-                    fontName,
-                    SKFontStyle.Normal
-                );
+                return cached;
             }
 
-            // Absolute last fallback (should almost never hit)
-            typeface ??= SKTypeface.CreateDefault();
+            Logger.Debug("Typeface cache miss: {CacheKey}", cacheKey);
 
-            _typefaceCache.TryAdd(cacheKey, typeface);
-            return typeface;
+            SKTypeface? result = null;
+
+            if (string.IsNullOrEmpty(fontStyle))
+            {
+                result = LoadTypeface(fontName, bold, italic);
+            }
+            else
+            {
+                using var typeface = SKTypeface.FromFamilyName(fontName);
+                using var fontStyles = SKFontManager.Default.GetFontStyles(fontName);
+
+                for (int i = 0; i < fontStyles.Count; i++)
+                {
+                    if (fontStyles.GetStyleName(i).Equals(fontStyle))
+                    {
+                        result = SKTypeface.FromFamilyName(fontName, fontStyles[i]);
+                        break;
+                    }
+                }
+            }
+
+            result ??= SKTypeface.CreateDefault();
+
+            _typefaceCache.TryAdd(cacheKey, result);
+            return result;
         }
-
-
 
         private static SKTypeface LoadTypeface(string fontName, bool bold, bool italic)
         {
