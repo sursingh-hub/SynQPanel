@@ -1,4 +1,5 @@
-﻿using System;
+﻿using SynQPanel.Infrastructure;
+using System;
 using System.IO;
 
 public static class DevTrace
@@ -7,8 +8,7 @@ public static class DevTrace
     public static bool Enabled { get; set; } = false; // set true temporarily to debug
 
     private static readonly string _dbgPath = Path.Combine(
-        Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData),
-        "SynQPanel", "SynQPanel_debug.log");
+    AppPaths.DataRoot, "SynQPanel_debug.log");
 
     public static void Write(string text)
     {

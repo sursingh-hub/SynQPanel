@@ -1,4 +1,5 @@
-﻿using SynQPanel.Models;
+﻿using SynQPanel.Infrastructure;
+using SynQPanel.Models;
 using System;
 using System.IO;
 using System.Linq;
@@ -38,7 +39,7 @@ namespace SynQPanel.Views.Components
 
                     if (profile != null)
                     {
-                        var imageFolder = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), "SynQPanel", "assets", profile.Guid.ToString());
+                        var imageFolder = Path.Combine(AppPaths.Assets, profile.Guid.ToString());
                         if (!Directory.Exists(imageFolder))
                         {
                             Directory.CreateDirectory(imageFolder);

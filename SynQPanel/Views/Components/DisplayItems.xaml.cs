@@ -1,5 +1,6 @@
 ﻿using GongSolutions.Wpf.DragDrop;
 using Serilog;
+using SynQPanel.Infrastructure;
 using SynQPanel.Models;
 using System;
 using System.Collections.Generic;
@@ -329,7 +330,7 @@ namespace SynQPanel.Views.Components
         {
 
             bool saveSucceeded = false;
-            var dbgPath = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), "SynQPanel", "synqpanel_debug.log");
+            var dbgPath = Path.Combine(AppPaths.DataRoot, "synqpanel_debug.log");
            
             try
             {

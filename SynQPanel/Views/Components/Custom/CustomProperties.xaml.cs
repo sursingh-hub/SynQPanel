@@ -1,5 +1,6 @@
 ﻿using Serilog;
 using SkiaSharp;
+using SynQPanel.Infrastructure;
 using SynQPanel.Models;
 using SynQPanel.Views.Components.Custom;
 using System;
@@ -96,7 +97,7 @@ namespace SynQPanel.Views.Components
 
                         foreach (var file in openFileDialog.FileNames)
                         {
-                            var imageFolder = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), "SynQPanel", "assets", profile.Guid.ToString());
+                            var imageFolder = Path.Combine(AppPaths.Assets, profile.Guid.ToString());
                             if (!Directory.Exists(imageFolder))
                             {
                                 Directory.CreateDirectory(imageFolder);

@@ -1,6 +1,7 @@
 ﻿using CommunityToolkit.Mvvm.ComponentModel;
 using SynQPanel.ViewModels;
 using System;
+using System.IO;
 using System.Collections.ObjectModel;
 using System.Collections.Specialized;
 
@@ -66,8 +67,13 @@ namespace SynQPanel.Models
         private int _version = 114;
 
         public bool DiagnosticsMode { get; set; } = false;
-
         public bool CloseToTray { get; set; } = false;
+        [ObservableProperty]
+        private string _dataRootPath =
+        Path.Combine(
+        Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData),
+        "SynQPanel");
+
 
 
 

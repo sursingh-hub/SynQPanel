@@ -1,14 +1,16 @@
 ﻿using CommunityToolkit.Mvvm.ComponentModel;
-using SynQPanel.Models;
-using SynQPanel.Monitors;
 using Microsoft.Win32;
 using Microsoft.Win32.TaskScheduler;
+using Serilog;
+using SynQPanel.Infrastructure;
+using SynQPanel.Models;
+using SynQPanel.Monitors;
+using SynQPanel.Services;
 using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Collections.Specialized;
 using System.ComponentModel;
-using Serilog;
 using System.IO;
 using System.Linq;
 using System.Text;
@@ -19,7 +21,6 @@ using System.Xml;
 using System.Xml.Serialization;
 using Task = System.Threading.Tasks.Task;
 using Timer = System.Threading.Timer;
-using SynQPanel.Services;
 
 namespace SynQPanel
 {
@@ -362,14 +363,14 @@ namespace SynQPanel
 
                             Settings.CloseToTray = settings.CloseToTray;
                             Settings.DiagnosticsMode = settings.DiagnosticsMode;
-
+                            Settings.DataRootPath = settings.DataRootPath;
 
                             Settings.SelectedItemColor = settings.SelectedItemColor;
                             Settings.ShowGridLines = settings.ShowGridLines;
                             Settings.GridLinesColor = settings.GridLinesColor;
                             Settings.GridLinesSpacing = settings.GridLinesSpacing;
+                            
 
-                           
                             Settings.WebServer = settings.WebServer;
                             Settings.WebServerListenIp = settings.WebServerListenIp;
                             Settings.WebServerListenPort = settings.WebServerListenPort;
@@ -477,7 +478,7 @@ namespace SynQPanel
                 }
 
                 //clean up profile asset folder
-                var assetsFolder = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), "SynQPanel", "assets");
+                var assetsFolder = Path.Combine(AppPaths.Assets);
                 if (Directory.Exists(assetsFolder))
                 {
                     var directories = Directory.GetDirectories(assetsFolder).ToList();
@@ -566,7 +567,7 @@ namespace SynQPanel
 
                     if (displayItems != null)
                     {
-                        var assetsFolder = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), "SynQPanel", "assets", Path.GetFileNameWithoutExtension(file));
+                        var assetsFolder = Path.Combine(AppPaths.Assets, Path.GetFileNameWithoutExtension(file));
 
                         if (!Directory.Exists(assetsFolder))
                         {

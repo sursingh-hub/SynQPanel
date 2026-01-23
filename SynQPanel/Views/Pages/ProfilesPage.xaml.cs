@@ -1,4 +1,5 @@
 ﻿using SkiaSharp;
+using SynQPanel.Infrastructure;
 using SynQPanel.Models;
 using SynQPanel.Utils;
 using SynQPanel.ViewModels;
@@ -164,9 +165,7 @@ namespace SynQPanel.Views.Pages
                         var profile = SharedModel.Instance.SelectedProfile;
                         if (profile != null)
                         {
-                            var assetFolder = Path.Combine(
-                                Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData),
-                                "SynQPanel", "assets", profile.Guid.ToString());
+                            var assetFolder = Path.Combine(AppPaths.Assets, profile.Guid.ToString());
 
                             if (!Directory.Exists(assetFolder))
                                 Directory.CreateDirectory(assetFolder);
@@ -299,9 +298,7 @@ namespace SynQPanel.Views.Pages
 
 
                         // AFTER saving, list files in profile asset folder for visibility
-                        var assetFolderLocal = Path.Combine(
-                            Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData),
-                            "SynQPanel", "assets", profile.Guid.ToString());
+                        var assetFolderLocal = Path.Combine(AppPaths.Assets, profile.Guid.ToString());
 
                         if (Directory.Exists(assetFolderLocal))
                         {
@@ -321,9 +318,7 @@ namespace SynQPanel.Views.Pages
 
                         if (imageNames.Count > 0)
                         {
-                            string assetFolder = Path.Combine(
-                                Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData),
-                                "SynQPanel", "assets", profile.Guid.ToString());
+                            string assetFolder = Path.Combine(AppPaths.Assets, profile.Guid.ToString());
 
                             // 1) Try to find the LCARS 1024x600 BG by a "smart" filename match
                             string bestBgName = imageNames
@@ -520,7 +515,7 @@ namespace SynQPanel.Views.Pages
                     }
 
                     // Permanent asset folder for this profile (GUID-based)
-                    string profileAssetRoot = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), "SynQPanel", "assets", profile.Guid.ToString());
+                    string profileAssetRoot = Path.Combine(AppPaths.Assets, profile.Guid.ToString());
                     Directory.CreateDirectory(profileAssetRoot);
 
                     // Step C: move the sp2 into the profile folder (if an identical file exists, keep it)
@@ -876,7 +871,7 @@ namespace SynQPanel.Views.Pages
                 // 9) Copy assets into LocalAppData\SynQPanel\assets\{guid}\
                 if (Directory.Exists(assetsFolder))
                 {
-                    string destAssetFolder = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), "SynQPanel", "assets", profile.Guid.ToString());
+                    string destAssetFolder = Path.Combine(AppPaths.Assets, profile.Guid.ToString());
                     Directory.CreateDirectory(destAssetFolder);
 
                     foreach (var file in Directory.GetFiles(assetsFolder))
@@ -957,8 +952,8 @@ namespace SynQPanel.Views.Pages
 
                     // Create the GUID asset folder
                     string profileAssetRoot =
-                        Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData),
-                        "SynQPanel", "assets", profile.Guid.ToString());
+                        Path.Combine(
+                        AppPaths.Assets, profile.Guid.ToString());
                     Directory.CreateDirectory(profileAssetRoot);
 
                     // Copy Profile.xml into the GUID asset folder (this one was NOT copied earlier)
@@ -1264,8 +1259,7 @@ namespace SynQPanel.Views.Pages
         private static string SaveEmbeddedImage(Guid profileGuid, string fileName, string hexData)
         {
             string assetsRoot = Path.Combine(
-                Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData),
-                "SynQPanel", "assets", profileGuid.ToString());
+            AppPaths.Assets, profileGuid.ToString());
 
             if (!Directory.Exists(assetsRoot))
                 Directory.CreateDirectory(assetsRoot);
@@ -1320,8 +1314,7 @@ namespace SynQPanel.Views.Pages
         {
             // Resolve full path to the asset
             var assetFolder = Path.Combine(
-                Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData),
-                "SynQPanel", "assets", profile.Guid.ToString());
+            AppPaths.Assets, profile.Guid.ToString());
 
             var fullPath = Path.Combine(assetFolder, fileName);
 
@@ -1563,8 +1556,7 @@ namespace SynQPanel.Views.Pages
 
             // Target folder: %LOCALAPPDATA%/SynQPanel/assets/{guid}/
             string targetFolder = Path.Combine(
-                Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData),
-                "SynQPanel", "assets", profile.Guid.ToString());
+            AppPaths.Assets, profile.Guid.ToString());
 
             if (!Directory.Exists(targetFolder))
                 Directory.CreateDirectory(targetFolder);

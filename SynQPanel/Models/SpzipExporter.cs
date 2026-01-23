@@ -1,8 +1,9 @@
-﻿using System;
+﻿using SynQPanel.Infrastructure;
+using SynQPanel.Models;
+using System;
 using System.Collections.Generic;
 using System.IO;
 using System.IO.Compression;
-using SynQPanel.Models;
 
 namespace SynQPanel.Models
 {
@@ -70,9 +71,7 @@ namespace SynQPanel.Models
 
                     // 3) Copy all asset images for this profile into temp
                     // Skip any .bak files so backups are NOT included in the package.
-                    string assetsRoot = Path.Combine(
-                        Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData),
-                        "SynQPanel", "assets", profile.Guid.ToString());
+                    string assetsRoot = Path.Combine(AppPaths.Assets, profile.Guid.ToString());
 
                     if (Directory.Exists(assetsRoot))
                     {

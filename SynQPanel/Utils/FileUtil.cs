@@ -1,13 +1,14 @@
-﻿using SynQPanel.Models;
+﻿using Serilog;
+using SynQPanel.Infrastructure;
+using SynQPanel.Models;
 using SynQPanel.Views.Components;
-using Serilog;
 using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Text;
-using System.Threading.Tasks;
 using System.Threading;
+using System.Threading.Tasks;
 using System.Windows.Forms;
 
 namespace SynQPanel.Utils
@@ -41,9 +42,7 @@ namespace SynQPanel.Utils
 
         public static string GetRelativeAssetPath(string profileGuid, string fileName)
         {
-            return Path.Combine(
-                           Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData),
-                           "SynQPanel", "assets", profileGuid, fileName);
+            return Path.Combine(AppPaths.Assets, profileGuid, fileName);
         }
 
         public static string GetAssetPath(Profile profile)
@@ -57,11 +56,11 @@ namespace SynQPanel.Utils
         }
         public static string GetAssetPath(string profileGuid)
         {
-            return Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), "SynQPanel", "assets", profileGuid);
+            return Path.Combine(AppPaths.Assets, profileGuid);
         }
         public static string GetAssetDirectory()
         {
-            return Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), "SynQPanel", "assets");
+            return Path.Combine(AppPaths.Assets);
         }
 
         public static async Task<bool> SaveAsset(Profile profile, string fileName, byte[] data)

@@ -245,6 +245,12 @@ namespace SynQPanel.Aida
                     xml = xml.Substring(0, lastTagEnd + 1);
                 }
 
+                // Hard guard: incomplete frame
+                if (!xml.EndsWith(">"))
+                {
+                    Log.Warning("AIDA: Incomplete XML frame detected (does not end with '>'). Skipping frame.");
+                    return _lastGoodSensors ?? new List<AidaSensorItem>();
+                }
 
                 string xmlToParse = "<root>" + xml + "</root>";
 
@@ -255,26 +261,22 @@ namespace SynQPanel.Aida
                 }
                 catch (XmlException ex)
                 {
-                    // 🔥 CRITICAL: do NOT crash, do NOT rethrow
                     Log.Error(
                         ex,
-                        "AIDA: XML parsing failed after truncation handling. XML length={Length}",
+                        "AIDA: XML parsing failed after truncation handling. XML length={Length}. Frame skipped.",
                         xml.Length
                     );
 
-                    // 🔍 Helpful diagnostics (safe, capped)
-                    Log.Debug(
-                        "AIDA: XML HEAD (first 500 chars): {Head}",
-                        xml.Length > 500 ? xml.Substring(0, 500) : xml
-                    );
+                    // Keep last known-good data
+                    if (_lastGoodSensors != null && _lastGoodSensors.Count > 0)
+                    {
+                        return _lastGoodSensors;
+                    }
 
-                    Log.Debug(
-                        "AIDA: XML TAIL (last 500 chars): {Tail}",
-                        xml.Length > 500 ? xml.Substring(xml.Length - 500) : xml
-                    );
-
-                    return new List<AidaSensorItem>(); // graceful fallback
+                    // No good data yet → return empty ONCE (startup only)
+                    return new List<AidaSensorItem>();
                 }
+
 
 
                 var sensors = doc.Root!
@@ -323,6 +325,10 @@ namespace SynQPanel.Aida
                 {
                     Log.Warning("AIDA: Sensor list is EMPTY after parsing");
                 }
+
+                // ✅ cache last known-good snapshot
+                _lastGoodSensors = sensors;
+                _lastGoodReadUtc = DateTime.UtcNow;
 
                 return sensors;
             }
@@ -486,6 +492,15 @@ namespace SynQPanel.Aida
         out MEMORY_BASIC_INFORMATION lpBuffer,
         UIntPtr dwLength
         );
+
+
+        //+++++++++++++++
+
+        private List<AidaSensorItem>? _lastGoodSensors;
+        private DateTime _lastGoodReadUtc;
+
+
+
 
 
 

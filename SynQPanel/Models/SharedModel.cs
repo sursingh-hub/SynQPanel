@@ -1,11 +1,12 @@
 ﻿using CommunityToolkit.Mvvm.ComponentModel;
+using Serilog;
+using SkiaSharp;
 using SynQPanel.Aida;
 using SynQPanel.Drawing;
 using SynQPanel.Extensions;
+using SynQPanel.Infrastructure;
 using SynQPanel.Models;
 using SynQPanel.Utils;
-using Serilog;
-using SkiaSharp;
 using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
@@ -592,7 +593,7 @@ namespace SynQPanel
                 // Minimal entry log (file append). Keep as small as possible to avoid heavy IO.
                 try
                 {
-                    var dbgPath = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), "SynQPanel", "synqpanel_debug.log");
+                    var dbgPath = Path.Combine(AppPaths.DataRoot, "synqpanel_debug.log");
                     Directory.CreateDirectory(Path.GetDirectoryName(dbgPath) ?? Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData));
                     File.AppendAllText(dbgPath, $"[SaveDisplayItems] Enter - profile='{profile?.Name}' GUID={profile?.Guid} items={displayItems?.Count ?? 0} {DateTime.Now:O}{Environment.NewLine}");
                 }
@@ -718,7 +719,7 @@ namespace SynQPanel
                             try
                             {
                                 // Ensure GUID asset folder exists
-                                string profileAssetRoot = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), "SynQPanel", "assets", profile.Guid.ToString());
+                                string profileAssetRoot = Path.Combine(AppPaths.Assets, profile.Guid.ToString());
                                 Directory.CreateDirectory(profileAssetRoot);
 
                                 // 1) If ImportedSensorPanelPath points to a GUID-local Profile.xml, write the Profile.xml there.
@@ -954,8 +955,7 @@ namespace SynQPanel
                 // 4b) Copy from profile's asset folder into stagingAssets, but FILTER out textual files & backups
                 try
                 {
-                    string profileAssetFolder = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData),
-                                                             "SynQPanel", "assets", profile.Guid.ToString());
+                    string profileAssetFolder = Path.Combine(AppPaths.Assets, profile.Guid.ToString());
                     if (Directory.Exists(profileAssetFolder))
                     {
                         // Accept only known asset extensions (images/videos/etc.)
@@ -1105,7 +1105,7 @@ namespace SynQPanel
                     }
 
                     //add assets
-                    var assetFolder = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), "SynQPanel", "assets", SelectedProfile.Guid.ToString());
+                    var assetFolder = Path.Combine(AppPaths.Assets, SelectedProfile.Guid.ToString());
 
                     if (Directory.Exists(assetFolder))
                     {
@@ -1756,9 +1756,7 @@ namespace SynQPanel
                             await FileUtil.SaveAsset(profile, IMGFIL, data);
 
                             // Compute where that file lives on disk (SaveAsset should have used per-profile folder)
-                            string assetsRoot = Path.Combine(
-                                Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData),
-                                "SynQPanel", "assets", profile.Guid.ToString());
+                            string assetsRoot = Path.Combine(AppPaths.Assets, profile.Guid.ToString());
 
                             if (!Directory.Exists(assetsRoot))
                                 Directory.CreateDirectory(assetsRoot);
@@ -2327,9 +2325,7 @@ namespace SynQPanel
                         Directory.CreateDirectory(tempFolder);
                         System.IO.Compression.ZipFile.ExtractToDirectory(importPath, tempFolder);
 
-                        var assetFolder = Path.Combine(
-                            Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData),
-                            "SynQPanel", "assets", Guid.NewGuid().ToString() // Use profile.Guid.ToString() if profile exists!
+                        var assetFolder = Path.Combine(AppPaths.Assets, Guid.NewGuid().ToString() // Use profile.Guid.ToString() if profile exists!
                         );
                         if (!Directory.Exists(assetFolder))
                         {
@@ -2483,9 +2479,7 @@ namespace SynQPanel
 
             try
             {
-                var assetsRoot = Path.Combine(
-                    Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData),
-                    "SynQPanel", "assets", profile.Guid.ToString());
+                var assetsRoot = Path.Combine(AppPaths.Assets, profile.Guid.ToString());
 
                 if (!Directory.Exists(assetsRoot))
                     Directory.CreateDirectory(assetsRoot);

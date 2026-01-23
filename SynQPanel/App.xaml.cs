@@ -5,6 +5,7 @@ using Microsoft.Win32;
 using Sentry;
 using Serilog;
 using Serilog.Events;
+using SynQPanel.Infrastructure;
 using SynQPanel.Models;
 using SynQPanel.Monitors;
 using SynQPanel.Services;
@@ -36,6 +37,22 @@ namespace SynQPanel
     /// </summary>
     public partial class App : System.Windows.Application
     {
+
+        static App()
+        {
+            // STEP 1: Bootstrap logger (no file sink, safe default)
+            Log.Logger = new LoggerConfiguration()
+#if DEBUG
+                .MinimumLevel.Debug()
+#else
+            .MinimumLevel.Information()
+#endif
+                .WriteTo.Debug()
+                .CreateLogger();
+        }
+
+
+
         private static readonly ILogger Logger = Log.ForContext<App>();
         private static readonly IHost _host = Host
        .CreateDefaultBuilder()
@@ -53,20 +70,7 @@ namespace SynQPanel
            .Enrich.WithMachineName()
            .Enrich.FromLogContext()
            .WriteTo.Debug()
-           .WriteTo.File(
-               Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), "SynQPanel", "logs", "SynQPanel-.log"),
-               rollingInterval: RollingInterval.Day,
-
-
-               //retainedFileCountLimit: 7,
-               //fileSizeLimitBytes: 104857600, // 100MB
-
-               retainedFileCountLimit: 2,
-               fileSizeLimitBytes: 10 * 1024 * 1024,
-
-               rollOnFileSizeLimit: true,
-               outputTemplate: "{Timestamp:yyyy-MM-dd HH:mm:ss.fff zzz} [{Level:u3}] [{ThreadId}] [{ThreadName}] - [{SourceContext}] {Message:lj}{NewLine}{Exception}"
-           ))
+           )
        .ConfigureServices((context, services) =>
        {
            // App Host
@@ -212,9 +216,21 @@ namespace SynQPanel
         protected override void OnExit(ExitEventArgs e)
         {
             Logger.Information("Application exiting");
+
+            try
+            {
+                ConfigModel.Instance.SaveSettings();
+                Logger.Information("Settings saved on exit");
+            }
+            catch (Exception ex)
+            {
+                Logger.Error(ex, "Failed to save settings on exit");
+            }
+
             Log.CloseAndFlush();
             base.OnExit(e);
         }
+
 
         protected override async void OnStartup(StartupEventArgs e)
         {
@@ -327,6 +343,39 @@ namespace SynQPanel
 
             ConfigModel.Instance.Initialize();
             Logger.Information("Configuration initialized");
+
+            // 🔹 Initialize centralized application paths (no migration yet)
+            AppPaths.Initialize(ConfigModel.Instance.Settings);
+
+             Log.Logger = new LoggerConfiguration()
+#if DEBUG
+            .MinimumLevel.Debug()
+#else
+            .MinimumLevel.Information()
+#endif
+            .MinimumLevel.Override("Microsoft", LogEventLevel.Information)
+            .Enrich.WithThreadId()
+            .Enrich.WithThreadName()
+            .Enrich.WithMachineName()
+            .Enrich.FromLogContext()
+            .WriteTo.Debug()
+            .WriteTo.File(
+            Path.Combine(AppPaths.Logs, "SynQPanel-.log"),
+            rollingInterval: RollingInterval.Day,
+
+            retainedFileCountLimit: 2,
+            fileSizeLimitBytes: 10 * 1024 * 1024,
+            rollOnFileSizeLimit: true,
+
+            outputTemplate:
+            "{Timestamp:yyyy-MM-dd HH:mm:ss.fff zzz} [{Level:u3}] [{ThreadId}] [{ThreadName}] - [{SourceContext}] {Message:lj}{NewLine}{Exception}"
+            )
+           .CreateLogger();
+
+            Logger.Information("File logging initialized at {LogPath}", AppPaths.Logs);
+
+
+            Logger.Information("AppPaths initialized with DataRoot: {DataRoot}", AppPaths.DataRoot);
 
             if (ConfigModel.Instance.Profiles.Count == 0)
             {

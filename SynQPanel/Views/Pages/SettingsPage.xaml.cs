@@ -10,6 +10,7 @@ using System.Net.NetworkInformation;
 using System.Windows;
 using System.Windows.Controls;
 using System.Diagnostics;
+using System.Windows.Forms;
 
 namespace SynQPanel.Views.Pages
 {
@@ -72,10 +73,52 @@ namespace SynQPanel.Views.Pages
 
         private void ButtonOpenDataFolder_Click(object sender, RoutedEventArgs e)
         {
-            string path = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), "SynQPanel");
-            Process.Start(new ProcessStartInfo("explorer.exe", path));
+            var path = ConfigModel.Instance.Settings.DataRootPath;
+
+            if (string.IsNullOrWhiteSpace(path) || !Directory.Exists(path))
+                return;
+
+            Process.Start(new ProcessStartInfo
+            {
+                FileName = "explorer.exe",
+                Arguments = path,
+                UseShellExecute = true
+            });
         }
 
-        
+
+        private void ButtonChangeDataFolder_Click(object sender, RoutedEventArgs e)
+        {
+            using var dialog = new System.Windows.Forms.FolderBrowserDialog
+            {
+                Description = "Select SynQPanel data folder",
+                UseDescriptionForTitle = true,
+                ShowNewFolderButton = true
+            };
+
+            if (dialog.ShowDialog() == System.Windows.Forms.DialogResult.OK)
+            {
+                ConfigModel.Instance.Settings.DataRootPath = dialog.SelectedPath;
+            }
+        }
+
+        private void ButtonOpenConfigFolder_Click(object sender, RoutedEventArgs e)
+        {
+            var path = Path.Combine(
+                Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData),
+                "SynQPanel");
+
+            if (!Directory.Exists(path))
+                return;
+
+            Process.Start(new ProcessStartInfo
+            {
+                FileName = "explorer.exe",
+                Arguments = path,
+                UseShellExecute = true
+            });
+        }
+
+
     }
 }

@@ -1,5 +1,6 @@
 ﻿using CommunityToolkit.Mvvm.ComponentModel;
 using SkiaSharp;
+using SynQPanel.Infrastructure;
 using System;
 using System.IO;
 
@@ -128,9 +129,7 @@ namespace SynQPanel.Models
                 {
                     if (FilePath != null)
                     {
-                        return Path.Combine(
-                            Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData),
-                            "SynQPanel", "assets", ProfileGuid.ToString(), FilePath);
+                        return Path.Combine(AppPaths.Assets, ProfileGuid.ToString(), FilePath);
                     }
                     else
                     {

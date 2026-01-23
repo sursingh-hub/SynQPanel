@@ -979,7 +979,7 @@ namespace SynQPanel.Models
                                     SetOrCreateChildValue(root, "LBLBIS", lblbis);
 
                                     // optional debug output to persistent log (if you want to inspect)
-                                    // File.AppendAllText(Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), "SynQPanel", "synqpanel_debug.log"),
+                                    
                                     //     $"[SensorPanelSaver] TextDisplayItem '{tx.Name}' flags => Bold:{bold} Italic:{italic} Right:{rightAlign} LBLBIS={lblbis}{Environment.NewLine}");
                                 }
                                 catch { /* swallow */ }
