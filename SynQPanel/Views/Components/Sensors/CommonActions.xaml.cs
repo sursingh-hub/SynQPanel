@@ -37,6 +37,23 @@ namespace SynQPanel.Views.Components
             }
         }
 
+        private void ButtonNewFlip_Click(object sender, RoutedEventArgs e)
+        {
+            if (SharedModel.Instance.SelectedProfile is not Profile profile)
+                return;
+
+            var item = new FlipDisplayItem("Flip", profile)
+            {
+                Width = 100,
+                Height = 120
+            };
+
+            SharedModel.Instance.AddDisplayItem(item);
+        }
+
+
+
+
         private void ButtonNewClock_Click(object sender, RoutedEventArgs e)
         {
             if (SharedModel.Instance.SelectedProfile is Profile selectedProfile)

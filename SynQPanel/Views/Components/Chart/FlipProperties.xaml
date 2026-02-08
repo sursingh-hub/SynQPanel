@@ -1,0 +1,133 @@
+﻿<UserControl
+    x:Class="SynQPanel.Views.Components.FlipProperties"
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+    xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+    xmlns:models="clr-namespace:SynQPanel.Models"
+    xmlns:sys="clr-namespace:System;assembly=mscorlib"
+    xmlns:ui="http://schemas.lepo.co/wpfui/2022/xaml"
+    mc:Ignorable="d">
+
+    <!-- ========================= -->
+    <!-- RESOURCES -->
+    <!-- ========================= -->
+    <UserControl.Resources>
+        <ObjectDataProvider
+            x:Key="FlipTimeUnitValues"
+            MethodName="GetValues"
+            ObjectType="{x:Type sys:Enum}">
+            <ObjectDataProvider.MethodParameters>
+                <x:Type TypeName="models:FlipTimeUnit"/>
+            </ObjectDataProvider.MethodParameters>
+        </ObjectDataProvider>
+    </UserControl.Resources>
+
+    <!-- ========================= -->
+    <!-- UI -->
+    <!-- ========================= -->
+    <Grid Margin="10">
+        <Grid.ColumnDefinitions>
+            <ColumnDefinition Width="*" />
+            <ColumnDefinition Width="200" />
+        </Grid.ColumnDefinitions>
+
+        <!-- Left Side: Properties -->
+        <StackPanel Grid.Column="0" Orientation="Vertical" Margin="0,0,10,0">
+
+            <TextBlock
+                Text="Flip Display"
+                FontWeight="SemiBold"
+                Margin="0,0,0,10" />
+
+            <!-- Image Folder -->
+            <Grid Margin="0,0,0,10">
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="*" />
+                    <ColumnDefinition Width="auto" />
+                </Grid.ColumnDefinitions>
+                <StackPanel Grid.Column="0" Margin="0,0,0,0">
+                    <TextBox IsReadOnly="True" Text="{Binding CalculatedImageFolder, Mode=OneWay}" />
+                    <TextBlock
+                        Margin="5,0,0,0"
+                        FontSize="12"
+                        Foreground="{DynamicResource TextFillColorDisabledBrush}"
+                        Text="Image Folder Path" />
+                </StackPanel>
+                <ui:Button
+                    Grid.Column="1"
+                    Width="150"
+                    Margin="10,0,0,0"
+                    HorizontalAlignment="Stretch"
+                    VerticalAlignment="Top"
+                    Appearance="Primary"
+                    Click="ButtonSelectFlipFolder_Click"
+                    Content="Select Folder" />
+            </Grid>
+
+            <!-- Import Status -->
+            <ui:CardControl 
+                x:Name="ImportStatusCard"
+                Margin="0,0,0,10"
+                Visibility="Collapsed">
+                <StackPanel>
+                    <TextBlock 
+                        x:Name="ImportStatusText"
+                        FontSize="12"
+                        TextWrapping="Wrap" />
+                </StackPanel>
+            </ui:CardControl>
+
+            <!-- Time Unit -->
+            <StackPanel Margin="0,0,0,0">
+                <ComboBox
+                    ItemsSource="{Binding Source={StaticResource FlipTimeUnitValues}}"
+                    SelectedItem="{Binding TimeUnit, Mode=TwoWay}" />
+                <TextBlock
+                    Margin="5,0,0,0"
+                    FontSize="12"
+                    Foreground="{DynamicResource TextFillColorDisabledBrush}"
+                    Text="Time Unit" />
+            </StackPanel>
+
+        </StackPanel>
+
+        <!-- Right Side: Preview -->
+        <Border 
+            Grid.Column="1"
+            Margin="0,0,0,0"
+            BorderBrush="{DynamicResource ControlStrokeColorDefaultBrush}"
+            BorderThickness="1"
+            CornerRadius="4"
+            Background="{DynamicResource CardBackgroundFillColorDefaultBrush}">
+            <StackPanel>
+                <TextBlock
+                    Text="Preview"
+                    FontWeight="SemiBold"
+                    Margin="10,10,10,5"
+                    HorizontalAlignment="Center" />
+
+                <Image
+                    x:Name="PreviewImage"
+                    Width="180"
+                    Height="180"
+                    Margin="10"
+                    HorizontalAlignment="Center"
+                    VerticalAlignment="Center"
+                    Stretch="Uniform"
+                    RenderOptions.BitmapScalingMode="HighQuality" />
+
+                <TextBlock
+                    x:Name="PreviewText"
+                    Text="No image selected"
+                    FontSize="11"
+                    Margin="10,0,10,10"
+                    HorizontalAlignment="Center"
+                    Foreground="{DynamicResource TextFillColorDisabledBrush}"
+                    TextWrapping="Wrap"
+                    TextAlignment="Center" />
+            </StackPanel>
+        </Border>
+
+    </Grid>
+</UserControl>

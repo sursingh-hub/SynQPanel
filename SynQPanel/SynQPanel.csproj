@@ -138,7 +138,13 @@
 		<None Remove="Resources\Images\AIDA\time.png" />
 		<None Remove="Resources\Images\AIDA\voltage o.png" />
 		<None Remove="Resources\Images\AIDA\voltage.png" />
+		<None Remove="Resources\Images\black-button.png" />
+		<None Remove="Resources\Images\bmc-button.png" />
+		<None Remove="Resources\Images\bmc-logo.png" />
+		<None Remove="Resources\Images\bmc.png" />
 		<None Remove="Resources\Images\home.jpg" />
+		<None Remove="Resources\Images\kofi-button.png" />
+		<None Remove="Resources\Images\kofi.png" />
 		<None Remove="Resources\Images\logo.ico" />
 		
 		<None Remove="Resources\Images\logo.ico" />
@@ -191,10 +197,14 @@
 		<Resource Include="Resources\Images\AIDA\time.png" />
 		<Resource Include="Resources\Images\AIDA\voltage o.png" />
 		<Resource Include="Resources\Images\AIDA\voltage.png" />
+		<Resource Include="Resources\Images\bmc-button.png" />
+		<Resource Include="Resources\Images\bmc.png" />
 		<Resource Include="Resources\Images\favicon.ico">
 			<CopyToOutputDirectory></CopyToOutputDirectory>
 		</Resource>
 		<Resource Include="Resources\Images\home.jpg" />
+		<Resource Include="Resources\Images\kofi-button.png" />
+		<Resource Include="Resources\Images\kofi.png" />
 		
 		<Resource Include="Resources\Images\logo.ico" />
 		<Resource Include="Resources\Images\logo.png" />
@@ -339,6 +349,9 @@
 	<ItemGroup>
 		<Page Update="Views\Components\Chart\DonutProperties.xaml">
 		  <SubType>Designer</SubType>
+		</Page>
+		<Page Update="Views\Components\Chart\FlipProperties.xaml">
+		  <Generator>MSBuild:Compile</Generator>
 		</Page>
 		<Page Update="Views\Pages\UpdatesPage.xaml">
 		  <SubType>Designer</SubType>

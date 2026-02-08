@@ -160,68 +160,42 @@
 
             <!--  Start right grid  -->
             <StackPanel
-                Grid.Column="1"
-                Margin="10,20,10,10"
-                VerticalAlignment="Center">
-                <ui:CardControl Margin="0,0,0,0" Icon="{ui:SymbolIcon Heart20}">
+            Grid.Column="1"
+            Margin="10,10,10,10"
+            VerticalAlignment="Center">
+
+                <!-- COMMUNITY -->
+                <TextBlock
+                Text="Community"
+                FontSize="14"
+                FontWeight="SemiBold"
+                Opacity="0.7"
+                Margin="0,0,0,6"/>
+
+                <ui:CardControl Icon="{ui:SymbolIcon Heart20}">
                     <ui:CardControl.Header>
                         <Grid>
                             <Grid.ColumnDefinitions>
-                                <ColumnDefinition Width="auto" />
                                 <ColumnDefinition Width="*" />
-                                <ColumnDefinition Width="auto" />
+                                <ColumnDefinition Width="Auto" />
                             </Grid.ColumnDefinitions>
 
-                            <StackPanel Grid.Column="0" VerticalAlignment="Center">
+                            <StackPanel>
+                                <TextBlock FontSize="13" FontWeight="Medium" Text="Love SynQPanel?" />
                                 <TextBlock
-                                    FontSize="13"
-                                    FontWeight="Medium"
-                                    Text="Love SynQPanel?" />
-                                <TextBlock
-                                    Margin="0,5,0,0"
-                                    FontSize="12"
-                                    Foreground="{DynamicResource TextFillColorTertiaryBrush}"
-                                    Text="Please share your love to show others to see and help SynQPanel grow." />
+                        Margin="0,4,0,0"
+                        FontSize="12"
+                        Foreground="{DynamicResource TextFillColorTertiaryBrush}"
+                        Text="Help SynQPanel grow by sharing your feedback."/>
                             </StackPanel>
-                            <ui:Anchor
-                                Grid.Column="2"
-                                Width="150"
-                                Margin="0,0,0,0"
-                                VerticalAlignment="Center"
-                                Appearance="Secondary"
-                                Content="Review"
-                                NavigateUri="https://forums.aida64.com/topic/22019-%F0%9F%9A%80-introducing-synqpanel-a-new-panel-based-visualization-tool-for-aida64-users/" />
-                        </Grid>
-                    </ui:CardControl.Header>
-                </ui:CardControl>
 
-                <ui:CardControl Margin="0,10,0,0" Icon="{ui:SymbolIcon DrinkCoffee20}">
-                    <ui:CardControl.Header>
-                        <Grid>
-                            <Grid.ColumnDefinitions>
-                                <ColumnDefinition Width="auto" />
-                                <ColumnDefinition Width="*" />
-                                <ColumnDefinition Width="auto" />
-                            </Grid.ColumnDefinitions>
-                            <StackPanel Grid.Column="0" VerticalAlignment="Center">
-                                <TextBlock
-                                    FontSize="13"
-                                    FontWeight="Medium"
-                                    Text="Support Development" />
-                                <TextBlock
-                                    Margin="0,5,0,0"
-                                    FontSize="12"
-                                    Foreground="{DynamicResource TextFillColorTertiaryBrush}"
-                                    Text="Love SynQPanel? Please show your appreciation and buy me a coffee." />
-                            </StackPanel>
                             <ui:Anchor
-                                Grid.Column="2"
-                                Width="150"
-                                Margin="0,0,0,0"
-                                VerticalAlignment="Center"
-                                Appearance="Secondary"
-                                Content="Donate"
-                                NavigateUri="https://www.buymeacoffee.com/synqpanel" />
+                    Grid.Column="1"
+                    Width="140"
+                    VerticalAlignment="Center"
+                    Appearance="Secondary"
+                    Content="Review"
+                    NavigateUri="https://forums.aida64.com/topic/22019-%F0%9F%9A%80-introducing-synqpanel-a-new-panel-based-visualization-tool-for-aida64-users/" />
                         </Grid>
                     </ui:CardControl.Header>
                 </ui:CardControl>
@@ -230,99 +204,123 @@
                     <ui:CardControl.Header>
                         <Grid>
                             <Grid.ColumnDefinitions>
-                                <ColumnDefinition Width="auto" />
                                 <ColumnDefinition Width="*" />
-                                <ColumnDefinition Width="auto" />
+                                <ColumnDefinition Width="Auto" />
                             </Grid.ColumnDefinitions>
 
-                            <StackPanel Grid.Column="0" VerticalAlignment="Center">
+                            <StackPanel>
+                                <TextBlock FontSize="13" FontWeight="Medium" Text="AIDA64 Forum" />
                                 <TextBlock
-                                    FontSize="13"
-                                    FontWeight="Medium"
-                                    Text="AIDA64 Forum (For discussion!)" />
-                                <TextBlock
-                                    Margin="0,5,0,0"
-                                    FontSize="12"
-                                    Foreground="{DynamicResource TextFillColorTertiaryBrush}"
-                                    Text="Join in conversations with others regarding SynQPanel." />
+                                Margin="0,4,0,0"
+                                FontSize="12"
+                                Foreground="{DynamicResource TextFillColorTertiaryBrush}"
+                                Text="Join discussions with other SynQPanel users."/>
                             </StackPanel>
+
                             <ui:Anchor
-                                Grid.Column="2"
-                                Width="150"
-                                Margin="0,0,0,0"
-                                VerticalAlignment="Center"
-                                Appearance="Secondary"
-                                Content="Browse"
-                                NavigateUri="https://forums.aida64.com/topic/22019-%F0%9F%9A%80-introducing-synqpanel-a-new-panel-based-visualization-tool-for-aida64-users/" />
+                            Grid.Column="1"
+                            Width="140"
+                            VerticalAlignment="Center"
+                            Appearance="Secondary"
+                            Content="Browse"
+                            NavigateUri="https://forums.aida64.com/topic/22019-%F0%9F%9A%80-introducing-synqpanel-a-new-panel-based-visualization-tool-for-aida64-users/" />
                         </Grid>
                     </ui:CardControl.Header>
                 </ui:CardControl>
 
-                <ui:CardControl Margin="0,10,0,0" Icon="{ui:SymbolIcon WebAsset20}">
+                <!-- SUPPORT -->
+                <TextBlock
+                Text="Support Development"
+                FontSize="14"
+                FontWeight="SemiBold"
+                Opacity="0.7"
+                Margin="0,14,0,8"/>
+
+                <ui:CardControl Icon="{ui:SymbolIcon DrinkCoffee20}">
                     <ui:CardControl.Header>
                         <Grid>
                             <Grid.ColumnDefinitions>
-                                <ColumnDefinition Width="auto" />
                                 <ColumnDefinition Width="*" />
-                                <ColumnDefinition Width="auto" />
+                                <ColumnDefinition Width="Auto" />
                             </Grid.ColumnDefinitions>
 
-                            <StackPanel Grid.Column="0" VerticalAlignment="Center">
+                            <!-- Text -->
+                            <StackPanel>
                                 <TextBlock
-                                    FontSize="13"
-                                    FontWeight="Medium"
-                                    Text="Reddit (Coming Soon - Very Lightly Though)" />
+                                Margin="0,20,0,0"
+                                FontSize="13"
+                                FontWeight="Medium"
+                                Text="Support ongoing development" />
+
                                 <TextBlock
-                                    Margin="0,5,0,0"
-                                    FontSize="12"
-                                    Foreground="{DynamicResource TextFillColorTertiaryBrush}"
-                                    Text="Help grow the //SynQPanel community." />
+                                Margin="0,4,0,0"
+                                FontSize="12"
+                                Foreground="{DynamicResource TextFillColorTertiaryBrush}"
+                                Text="Love SynQPanel? Consider supporting it here:" />
                             </StackPanel>
-                            <ui:Anchor
-                                Grid.Column="2"
-                                Width="150"
-                                Margin="0,0,0,0"
-                                VerticalAlignment="Center"
-                                Appearance="Secondary"
-                                Content="Launch"
-                                IsEnabled="False"
-                                NavigateUri="https://" />
+
+                            <!-- Buttons (right, stacked) -->
+                            <StackPanel
+                            Grid.Column="1"
+                            Margin="16,0,0,0"
+                            VerticalAlignment="Center">
+
+                                <!-- Buy Me a Coffee -->
+                                <ui:Anchor
+                                Background="Transparent"
+                                BorderThickness="0"
+                                NavigateUri="https://www.buymeacoffee.com/synqpanel">
+                                    <Image
+                                    Width="132"
+                                    Height="32"
+                                    Stretch="Uniform"
+                                    Source="pack://application:,,,/Resources/Images/bmc-button.png" />
+                                </ui:Anchor>
+
+                                <!-- Ko-fi -->
+                                <ui:Anchor
+                                Margin="0,8,0,0"
+                                Background="Transparent"
+                                BorderThickness="0"
+                                NavigateUri="https://ko-fi.com/synqpanel">
+                                <Image
+                                Width="160"
+                                Height="35"
+                                Stretch="Uniform"
+                                Source="pack://application:,,,/Resources/Images/kofi-button.png" />
+                                </ui:Anchor>
+
+                            </StackPanel>
                         </Grid>
                     </ui:CardControl.Header>
                 </ui:CardControl>
 
+                <!-- LEGAL -->
+                <TextBlock
+                Text="Legal"
+                FontSize="14"
+                FontWeight="SemiBold"
+                Opacity="0.7"
+                Margin="0,14,0,8"/>
 
-                <ui:CardControl Margin="0,10,0,0" Icon="{ui:SymbolIcon ShieldCheckmark20}">
+                <ui:CardControl Icon="{ui:SymbolIcon ShieldCheckmark20}">
                     <ui:CardControl.Header>
-                        <Grid>
-                            <Grid.ColumnDefinitions>
-                                <ColumnDefinition Width="auto" />
-                                <ColumnDefinition Width="*" />
-                                <ColumnDefinition Width="auto" />
-                            </Grid.ColumnDefinitions>
-
-                            <StackPanel Grid.Column="0" VerticalAlignment="Center">
-                                <TextBlock
-                                    FontSize="14"
-                                    FontWeight="Medium"
-                                    Foreground="Cyan"
-                                    Text="AIDA64 is a registered trademark of FinalWire Ltd." />
-                                <TextBlock
-                                    Margin="0,4,0,0"
-                                    FontSize="13"
-                                    Opacity="0.85"
-                                    Foreground="Cyan"
-                                    Text="This project is not affiliated with or endorsed by FinalWire." />
-                            </StackPanel>
-                            
-                        </Grid>
+                        <StackPanel>
+                            <TextBlock
+                            FontSize="13"
+                            FontWeight="Medium"
+                            Foreground="Cyan"
+                            Text="AIDA64 is a registered trademark of FinalWire Ltd." />
+                            <TextBlock
+                            Margin="0,4,0,0"
+                            FontSize="12"
+                            Opacity="0.85"
+                            Foreground="Cyan"
+                            Text="This project is not affiliated with or endorsed by FinalWire." />
+                        </StackPanel>
                     </ui:CardControl.Header>
                 </ui:CardControl>
-
             </StackPanel>
         </Grid>
-
-
-
     </StackPanel>
 </Page>

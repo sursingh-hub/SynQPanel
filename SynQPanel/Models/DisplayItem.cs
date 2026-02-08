@@ -26,6 +26,7 @@ namespace SynQPanel.Models;
 [XmlInclude(typeof(HttpImageDisplayItem))]
 [XmlInclude(typeof(SensorImageDisplayItem))]
 [XmlInclude(typeof(TableSensorDisplayItem))]
+[XmlInclude(typeof(FlipDisplayItem))]
 public abstract partial class DisplayItem : ObservableObject, ICloneable
 {
     [XmlIgnore]
@@ -223,5 +224,25 @@ public abstract partial class DisplayItem : ObservableObject, ICloneable
     public override string ToString()
     {
         return Name;
+    }
+
+
+
+    [XmlIgnore]
+    public string UiKind
+    {
+        get
+        {
+            // Flip items (Seconds / Minutes / Hours)
+            if (this is FlipDisplayItem)
+                return "Flip";
+
+            // Time-based visuals
+            if (this is ClockDisplayItem || this is CalendarDisplayItem)
+                return "Time";
+
+            // Everything else → fall back to Kind
+            return Kind;
+        }
     }
 }

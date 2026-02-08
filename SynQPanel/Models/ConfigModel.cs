@@ -430,6 +430,16 @@ namespace SynQPanel
                 if (Profiles.Count > 1)
                 {
                     Profiles.Remove(profile);
+
+                    // clean this profile's assets when user actually deletes it
+                    try
+                    {
+                        var profileAssetFolder = Path.Combine(AppPaths.Assets, profile.Guid.ToString());
+                        if (Directory.Exists(profileAssetFolder))
+                            Directory.Delete(profileAssetFolder, true);
+                    }
+                    catch { }
+
                     return true;
                 }
             }
@@ -437,67 +447,55 @@ namespace SynQPanel
             return false;
         }
 
+
         public void SaveProfiles()
         {
             lock (_profilesLock)
             {
-                var folder = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), "SynQPanel");
+                var folder = Path.Combine(
+                    Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData),
+                    "SynQPanel");
                 if (!Directory.Exists(folder))
-                {
                     Directory.CreateDirectory(folder);
-                }
 
                 var profiles = GetProfilesCopy();
                 var fileName = Path.Combine(folder, "profiles.xml");
                 XmlSerializer xs = new XmlSerializer(typeof(List<Profile>));
-                var settings = new XmlWriterSettings() { Encoding = Encoding.UTF8, Indent = true };
+                var settings = new XmlWriterSettings { Encoding = Encoding.UTF8, Indent = true };
+
                 using (var wr = XmlWriter.Create(fileName, settings))
                 {
-
                     xs.Serialize(wr, profiles);
                 }
 
-                //clean up profile xml
-                var profilesFolder = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), "SynQPanel", "profiles");
+                // clean up profile xml ONLY
+                var profilesFolder = Path.Combine(
+                    Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData),
+                    "SynQPanel",
+                    "profiles");
                 if (Directory.Exists(profilesFolder))
                 {
                     var files = Directory.GetFiles(profilesFolder).ToList();
                     foreach (var profile in profiles)
-                    {
-                        files.Remove(Path.Combine(profilesFolder, profile.Guid.ToString() + ".xml"));
-                    }
+                        files.Remove(Path.Combine(profilesFolder, profile.Guid + ".xml"));
 
                     foreach (var file in files)
                     {
-                        try
-                        {
-                            File.Delete(file);
-                        }
+                        try { File.Delete(file); }
                         catch { }
                     }
                 }
 
-                //clean up profile asset folder
-                var assetsFolder = Path.Combine(AppPaths.Assets);
-                if (Directory.Exists(assetsFolder))
-                {
-                    var directories = Directory.GetDirectories(assetsFolder).ToList();
-                    foreach (var profile in profiles)
-                    {
-                        directories.Remove(Path.Combine(assetsFolder, profile.Guid.ToString()));
-                    }
-
-                    foreach (var directory in directories)
-                    {
-                        try
-                        {
-                            Directory.Delete(directory, true);
-                        }
-                        catch { }
-                    }
-                }
+                // ❌ do NOT touch AppPaths.Assets here anymore
             }
         }
+
+
+
+
+
+
+
 
         public void ReloadProfile(Profile profile)
         {

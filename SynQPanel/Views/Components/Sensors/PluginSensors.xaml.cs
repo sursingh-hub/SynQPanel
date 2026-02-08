@@ -141,6 +141,17 @@ namespace SynQPanel.Views.Components
             {
                 ViewModel.SelectedItem = null;
             }
+
+            // Add this at the end of the method:
+            if (ViewModel.SelectedItem is PluginSensorItem item)
+            {
+                ButtonAddHttpImage.IsEnabled = item.SensorId.Contains("url", StringComparison.OrdinalIgnoreCase);
+            }
+            else
+            {
+                ButtonAddHttpImage.IsEnabled = false;
+            }
+
         }
 
         private void ScrollViewer_PreviewMouseWheel(object sender, MouseWheelEventArgs e)
@@ -163,14 +174,17 @@ namespace SynQPanel.Views.Components
             {
                 var item = new HttpImageDisplayItem(sensorItem.Name, selectedProfile)
                 {
-                    Width = 100,
-                    Height = 100,
+                    Width = 80 ,
+                    Height = 80,
                     PluginSensorId = sensorItem.SensorId,
-                    SensorType = Enums.SensorType.Plugin
+                    SensorType = Enums.SensorType.Plugin,
+                    Cache = true,  // 🔴 ADDED - enable caching so image persists
+                    PersistentCache = true // prevents disposal
                 };
                 SharedModel.Instance.AddDisplayItem(item);
             }
         }
+
 
         private void ButtonAddTableSensor_Click(object sender, RoutedEventArgs e)
         {
@@ -184,5 +198,21 @@ namespace SynQPanel.Views.Components
                 SharedModel.Instance.AddDisplayItem(item);
             }
         }
+
+        private void SensorListView_SelectionChanged(object sender, SelectionChangedEventArgs e)
+        {
+            // Enable button only if a sensor with "url" in its ID is selected
+            if (ViewModel.SelectedItem is PluginSensorItem item)
+            {
+                ButtonAddHttpImage.IsEnabled = item.SensorId.Contains("url", StringComparison.OrdinalIgnoreCase);
+            }
+            else
+            {
+                ButtonAddHttpImage.IsEnabled = false;
+            }
+        }
+
+
+
     }
 }

@@ -132,17 +132,22 @@ namespace SynQPanel
             }
         }
 
+
+
+
+
         private static void InitializeImage(string path, ImageDisplayItem? imageDisplayItem)
         {
-            // Double-check cache after acquiring lock - another thread may have loaded it
             if (ImageCache.TryGetValue(path, out _))
             {
-                return; // Already cached by another thread
+                return;
             }
 
             LockedImage? createdImage = null;
+            bool isUrl = path.IsUrl();
 
-            if (File.Exists(path))
+            // Allow both files and URLs
+            if (isUrl || File.Exists(path))
             {
                 try
                 {
@@ -151,7 +156,6 @@ namespace SynQPanel
                 catch (Exception ex)
                 {
                     Log.Error(ex, "Error creating LockedImage for {Path}", path);
-                    // createdImage stays null
                 }
             }
             else
@@ -159,36 +163,43 @@ namespace SynQPanel
                 Log.Debug("GetLocalImage: file not found, skipping creation for {Path}", path);
             }
 
-            var cachedImage = createdImage;
-
-
             var cacheOptions = new MemoryCacheEntryOptions
             {
                 PostEvictionCallbacks = {
-                    new PostEvictionCallbackRegistration
+            new PostEvictionCallbackRegistration
+            {
+                EvictionCallback = (key, value, reason, state) =>
+                {
+                    Logger.Debug("Cache entry '{Key}' evicted due to {Reason}", key, reason);
+                    if (value is LockedImage lockedImage)
                     {
-                        EvictionCallback = (key, value, reason, state) =>
-                        {
-                            Logger.Debug("Cache entry '{Key}' evicted due to {Reason}", key, reason);
-                            if (value is LockedImage lockedImage)
-                            {
-                                lockedImage.Dispose();
-                            }
-                        }
+                        lockedImage.Dispose();
                     }
                 }
+            }
+        }
             };
 
-            // Only set expiration for non-persistent images
-            if (imageDisplayItem?.PersistentCache != true)
+            // Make HTTP/HTTPS images persistent or long-lived
+            if (imageDisplayItem?.PersistentCache == true || isUrl)
+            {
+                // No expiration - stays in cache until explicitly removed
+            }
+            else
             {
                 cacheOptions.SlidingExpiration = TimeSpan.FromSeconds(10);
             }
 
-            ImageCache.Set(path, cachedImage, cacheOptions);
+            ImageCache.Set(path, createdImage, cacheOptions);
 
-            Logger.Debug("Image '{Path}' loaded successfully (Persistent: {Persistent})", path, imageDisplayItem?.PersistentCache ?? false);
+            Logger.Debug("Image '{Path}' loaded successfully (Persistent: {Persistent}, IsUrl: {IsUrl})",
+                path, imageDisplayItem?.PersistentCache ?? false, isUrl);
         }
+
+
+
+
+
 
         public static void InvalidateImage(ImageDisplayItem imageDisplayItem)
         {

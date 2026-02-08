@@ -36,25 +36,51 @@ namespace SynQPanel.Views.Controls
 
         private static void OnImageDisplayItemChanged(DependencyObject d, DependencyPropertyChangedEventArgs e)
         {
-            if (d is MyImage myImage)
+            if (d is not MyImage myImage)
+                return;
+
+            if (e.NewValue is ImageDisplayItem)
             {
-                if (e.NewValue is ImageDisplayItem imageDisplayItem)
+                if (!myImage._timerDisposed)
                 {
-                    myImage.Timer.Start();
+                    try
+                    {
+                        myImage.Timer.Start();
+                    }
+                    catch (ObjectDisposedException)
+                    {
+                        // timer already disposed – ignore
+                    }
                 }
-                else
+            }
+            else
+            {
+                myImage.Source = null;
+
+                if (!myImage._timerDisposed)
                 {
-                    myImage.Source = null;
-                    myImage.Timer.Stop();
+                    try
+                    {
+                        myImage.Timer.Stop();
+                    }
+                    catch (ObjectDisposedException)
+                    {
+                        // safe to ignore
+                    }
                 }
             }
         }
+
+        //Helper
+        private bool _timerDisposed;
+        
 
         private void MyImage_Unloaded(object sender, RoutedEventArgs e)
         {
             Timer.Stop();
             Timer.Elapsed -= Timer_Tick;
             Timer.Dispose();
+            _timerDisposed = true;
         }
 
         private void OnLoaded(object sender, RoutedEventArgs e)

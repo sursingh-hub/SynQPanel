@@ -1,10 +1,11 @@
 ﻿using FlyleafLib.MediaPlayer;
+using Serilog;
+using SkiaSharp;
 using SynQPanel.Extensions;
 using SynQPanel.Models;
 using SynQPanel.Plugins;
+using SynQPanel.Rendering;
 using SynQPanel.Utils;
-using Serilog;
-using SkiaSharp;
 using System;
 using System.Collections.Generic;
 using System.Data;
@@ -14,6 +15,7 @@ using System.Drawing.Drawing2D;
 using System.IO;
 using System.Linq;
 using System.Reflection;
+using static SynQPanel.Models.FlipDisplayItem;
 
 
 namespace SynQPanel.Drawing
@@ -219,6 +221,94 @@ namespace SynQPanel.Drawing
             clippedPath.Dispose();
             return null;
         }
+
+
+
+        private static void DrawFlipStatic(
+        SkiaGraphics g,
+        FlipDisplayItem flip,
+        float scale)
+        {
+            if (string.IsNullOrWhiteSpace(flip.ImageFolder))
+                return;
+
+            // Clamp preview value safely
+            int value = flip.PreviewValue;
+            if (value < 0) value = 0;
+            if (value > 99) value = 99;
+
+            // Build filename: 00.png, 01.png, etc.
+            string fileName =
+                value.ToString().PadLeft(flip.DigitCount, '0') + ".png";
+
+            string fullPath = Path.Combine(flip.ImageFolder, fileName);
+            if (!File.Exists(fullPath))
+                return;
+
+            using var bitmap = SKBitmap.Decode(fullPath);
+            if (bitmap == null)
+                return;
+
+            // Source image size
+            int srcWidth = bitmap.Width;
+            int srcHeight = bitmap.Height;
+            int halfSrcHeight = srcHeight / 2;
+
+            // Destination size (scaled)
+            int destWidth = (int)(flip.Width * scale);
+            int destHeight = (int)(flip.Height * scale);
+            int halfDestHeight = destHeight / 2;
+
+            if (destWidth <= 0 || destHeight <= 0)
+                return;
+
+            int x = (int)(flip.X * scale);
+            int y = (int)(flip.Y * scale);
+
+            // --- TOP HALF ---
+            using (var topBitmap = new SKBitmap(srcWidth, halfSrcHeight))
+            {
+                using var canvas = new SKCanvas(topBitmap);
+                canvas.DrawBitmap(
+                    bitmap,
+                    new SKRect(0, 0, srcWidth, halfSrcHeight),
+                    new SKRect(0, 0, srcWidth, halfSrcHeight));
+
+                g.DrawBitmap(
+                    topBitmap,
+                    x,
+                    y,
+                    destWidth,
+                    halfDestHeight);
+            }
+
+            // --- BOTTOM HALF ---
+            using (var bottomBitmap = new SKBitmap(srcWidth, halfSrcHeight))
+            {
+                using var canvas = new SKCanvas(bottomBitmap);
+                canvas.DrawBitmap(
+                    bitmap,
+                    new SKRect(0, halfSrcHeight, srcWidth, srcHeight),
+                    new SKRect(0, 0, srcWidth, halfSrcHeight));
+
+                g.DrawBitmap(
+                    bottomBitmap,
+                    x,
+                    y + halfDestHeight,
+                    destWidth,
+                    halfDestHeight);
+            }
+        }
+
+
+
+
+
+
+
+
+
+
 
         private static void Draw(SkiaGraphics g, bool preview, float scale, bool cache, string cacheHint, DisplayItem displayItem, List<SelectedRectangle> selectedRectangles)
         {
@@ -794,6 +884,499 @@ namespace SynQPanel.Drawing
 
                         break;
                     }
+
+                    case FlipDisplayItem flip:
+                    {
+                        if (string.IsNullOrWhiteSpace(flip.ImageFolder))
+                            break;
+
+                        int w = (int)Math.Floor(flip.Width * scale);
+                        int h = (int)Math.Floor(flip.Height * scale);
+                        if (w <= 0 || h <= 0)
+                            break;
+
+                        // -------------------------
+                        // TIMEFLOW RESOLUTION
+                        // -------------------------
+                        string valueSensorPath;
+                        string? phaseSensorPath = null;
+                        int maxValue;
+
+                        switch (flip.TimeUnit)
+                        {
+                            case FlipTimeUnit.Minute:
+                                valueSensorPath = "/timeflow/timeflow-absolute/minute";
+                                maxValue = 59;
+                                break;
+
+                            case FlipTimeUnit.Hour12:
+                                valueSensorPath = "/timeflow/timeflow-absolute/hour-12";
+                                maxValue = 12;
+                                break;
+
+                            case FlipTimeUnit.Hour24:
+                                valueSensorPath = "/timeflow/timeflow-absolute/hour-24";
+                                maxValue = 23;
+                                break;
+
+                            default: // Second
+                                valueSensorPath = "/timeflow/timeflow-absolute/second";
+                                phaseSensorPath = "/timeflow/timeflow-flow/second-phase";
+                                maxValue = 59;
+                                break;
+                        }
+
+                        // -------------------------
+                        // READ VALUE
+                        // -------------------------
+                        var valueReading = SensorReader.ReadPluginSensor(valueSensorPath);
+                        if (!valueReading.HasValue)
+                            break;
+
+                        int rawValue = (int)valueReading.Value.ValueNow;
+
+
+                        // THIS is the value used for rendering
+                        int value = flip.TimeUnit == FlipTimeUnit.Hour12
+                            ? Math.Clamp(rawValue, 1, 12)
+                            : Math.Clamp(rawValue, 0, maxValue);
+
+                        // -------------------------
+                        // PROGRESS
+                        // -------------------------
+                        float progress;
+                        bool isAnimating;
+
+                        if (flip.TimeUnit == FlipTimeUnit.Second)
+                        {
+                            var phaseReading = SensorReader.ReadPluginSensor(phaseSensorPath!);
+                            progress = phaseReading.HasValue
+                                ? Math.Clamp((float)phaseReading.Value.ValueNow, 0f, 1f)
+                                : 0f;
+
+                            isAnimating = true; // seconds always animate
+                        }
+                        else if (flip.TimeUnit == FlipTimeUnit.Minute)
+                        {
+                            // Check if we're at second 59 (flip trigger)
+                            var secondReading = SensorReader.ReadPluginSensor("/timeflow/timeflow-absolute/second");
+
+                            if (secondReading.HasValue && (int)secondReading.Value.ValueNow == 59)
+                            {
+                                // We're flipping! Use second-phase for smooth animation
+                                var phaseReading = SensorReader.ReadPluginSensor("/timeflow/timeflow-flow/second-phase");
+                                progress = phaseReading.HasValue
+                                    ? Math.Clamp((float)phaseReading.Value.ValueNow, 0f, 1f)
+                                    : 0f;
+                                isAnimating = true;
+                            }
+                            else
+                            {
+                                // Not flipping, show static
+                                progress = 1f;
+                                isAnimating = false;
+                            }
+                        }
+                        else // Hour12 / Hour24
+                        {
+                            // Check if we're at minute=59 AND second=59 (flip trigger)
+                            var minuteReading = SensorReader.ReadPluginSensor("/timeflow/timeflow-absolute/minute");
+                            var secondReading = SensorReader.ReadPluginSensor("/timeflow/timeflow-absolute/second");
+
+                            if (minuteReading.HasValue && (int)minuteReading.Value.ValueNow == 59 &&
+                                secondReading.HasValue && (int)secondReading.Value.ValueNow == 59)
+                            {
+                                // We're flipping! Use second-phase for smooth animation
+                                var phaseReading = SensorReader.ReadPluginSensor("/timeflow/timeflow-flow/second-phase");
+                                progress = phaseReading.HasValue
+                                    ? Math.Clamp((float)phaseReading.Value.ValueNow, 0f, 1f)
+                                    : 0f;
+                                isAnimating = true;
+                            }
+                            else
+                            {
+                                // Not flipping, show static
+                                progress = 1f;
+                                isAnimating = false;
+                            }
+                        }
+
+                        // -------------------------
+                        // CURRENT IMAGE
+                        // -------------------------
+                        string currentPath = Path.Combine(
+                            flip.CalculatedImageFolder,
+                            value.ToString().PadLeft(flip.DigitCount, '0') + ".png"
+                        );
+
+                        if (!File.Exists(currentPath))
+                            break;
+
+                        var currentLocked = Cache.GetLocalImageFromPath(
+                            currentPath,
+                            initialiseIfMissing: true,
+                            imageDisplayItem: null
+                        );
+
+                        if (currentLocked == null || !currentLocked.Loaded)
+                            break;
+
+                        // -------------------------
+                        // NEXT IMAGE (ONLY WHEN ALLOWED)
+                        // -------------------------
+                        LockedImage? nextLocked = null;
+
+                        if (isAnimating)
+                        {
+                            int nextValue = flip.TimeUnit switch
+                            {
+                                FlipTimeUnit.Hour12 => value == 12 ? 1 : value + 1,
+                                _ => (value + 1) % (maxValue + 1)
+                            };
+
+                            string nextPath = Path.Combine(
+                                flip.CalculatedImageFolder,
+                                nextValue.ToString().PadLeft(flip.DigitCount, '0') + ".png"
+                            );
+
+                            if (File.Exists(nextPath))
+                            {
+                                nextLocked = Cache.GetLocalImageFromPath(
+                                    nextPath,
+                                    initialiseIfMissing: true,
+                                    imageDisplayItem: null
+                                );
+                            }
+                        }
+
+                        // -------------------------
+                        // DRAW (UNCHANGED)
+                        // -------------------------
+                        FlipRendererModern.Draw(
+                         g,
+                         currentLocked,
+                         nextLocked,
+                         x,
+                         y,
+                         w,
+                         h,
+                         value,
+                         flip.DigitCount,
+                         flip.CalculatedImageFolder, // ✅ FIX
+                         progress,
+                         scale,
+                         cacheHint
+                     );
+
+
+                     break;
+                    }
+
+
+                    /*      
+                          // ======== 180 Try ========
+                      case FlipDisplayItem flip:
+                          {
+                              // -------------------------
+                              // BASIC VALIDATION
+                              // -------------------------
+                              if (string.IsNullOrWhiteSpace(flip.ImageFolder))
+                                  break;
+
+                              int w = (int)Math.Floor(flip.Width * scale);
+                              int h = (int)Math.Floor(flip.Height * scale);
+                              if (w <= 0 || h <= 0)
+                                  break;
+
+                              int halfH = h / 2;
+
+                              // -------------------------
+                              // READ TIMEFLOW (NON-FATAL)
+                              // -------------------------
+                              var secondReading =
+                             SensorReader.ReadPluginSensor("/timeflow/timeflow-absolute/second");
+
+                              if (!secondReading.HasValue)
+                                  break;
+
+                              int value = (int)secondReading.Value.ValueNow;
+                              value = Math.Clamp(value, 0, 59);
+
+                              var phaseReading =
+                                SensorReader.ReadPluginSensor("/timeflow/timeflow-flow/second-phase");
+
+                              float progress = phaseReading.HasValue
+                                  ? Math.Clamp((float)phaseReading.Value.ValueNow, 0f, 1f)
+                                  : 0f;
+
+
+                              // -------------------------
+                              // CURRENT DIGIT IMAGE
+                              // -------------------------
+                              string fileName =
+                                  value.ToString().PadLeft(flip.DigitCount, '0') + ".png";
+
+                              string fullPath = Path.Combine(flip.ImageFolder, fileName);
+                              if (!File.Exists(fullPath))
+                                  break;
+
+                              var locked = Cache.GetLocalImageFromPath(
+                                  fullPath,
+                                  initialiseIfMissing: true,
+                                  imageDisplayItem: null
+                              );
+
+                              if (locked == null || !locked.Loaded)
+                                  break;
+
+                              // -------------------------
+                              // DRAW (AUTHORITATIVE FLIP)
+                              // -------------------------
+                              locked.AccessSK(w, h, image =>
+                              {
+                                  int srcHalf = image.Height / 2;
+                                  int dstHalf = halfH;
+
+                                  float p = Math.Clamp(progress, 0f, 1f);
+
+                                  using var paint = new SKPaint { IsAntialias = true, FilterQuality = SKFilterQuality.High };
+
+                                  // Get NEXT digit image
+                                  int nextValue = (value + 1) % 60;
+                                  string nextFileName = nextValue.ToString().PadLeft(flip.DigitCount, '0') + ".png";
+                                  string nextPath = Path.Combine(flip.ImageFolder, nextFileName);
+
+                                  // ================================
+                                  // LAYER 1: BACK CARD (NEXT digit top half - ALWAYS VISIBLE)
+                                  // This is what gets revealed as the front card flips away
+                                  // ================================
+                                  if (File.Exists(nextPath))
+                                  {
+                                      var nextLocked = Cache.GetLocalImageFromPath(
+                                          nextPath,
+                                          initialiseIfMissing: true,
+                                          imageDisplayItem: null
+                                      );
+
+                                      if (nextLocked != null && nextLocked.Loaded)
+                                      {
+                                          nextLocked.AccessSK(w, h, nextImage =>
+                                          {
+                                              // Draw NEXT digit's top half as background
+                                              g.Canvas.DrawImage(
+                                                  nextImage,
+                                                  new SKRect(0, 0, nextImage.Width, srcHalf),
+                                                  new SKRect(x, y, x + w, y + dstHalf),
+                                                  paint
+                                              );
+                                          }, cache: true, cacheHint: cacheHint, grContext: null);
+                                      }
+                                  }
+
+                                  float hingeSquash = 1f - (float)Math.Sin(p * Math.PI) * 0.1f;
+
+                                  g.Canvas.Save();
+                                  g.Canvas.Translate(x + w / 2f, y + dstHalf);
+                                  g.Canvas.Scale(1f, hingeSquash);
+                                  g.Canvas.Translate(-(x + w / 2f), -(y + dstHalf));
+                                  g.Canvas.Restore();
+
+                                  // ================================
+                                  // LAYER 2: BOTTOM HALF - Switch at midpoint
+                                  // ================================
+                                  const float bottomSwitchPoint = 0.55f; // slightly later
+
+                                  if (p < bottomSwitchPoint)
+                                  {
+                                      // CURRENT digit bottom half
+                                      g.Canvas.DrawImage(
+                                          image,
+                                          new SKRect(0, srcHalf, image.Width, image.Height),
+                                          new SKRect(x, y + dstHalf, x + w, y + h),
+                                          paint
+                                      );
+                                  }
+                                  else
+                                  {
+                                      // NEXT digit bottom half
+                                      if (File.Exists(nextPath))
+                                      {
+                                          var nextLocked = Cache.GetLocalImageFromPath(
+                                              nextPath,
+                                              initialiseIfMissing: true,
+                                              imageDisplayItem: null
+                                          );
+
+                                          if (nextLocked != null && nextLocked.Loaded)
+                                          {
+                                              nextLocked.AccessSK(w, h, nextImage =>
+                                              {
+                                                  g.Canvas.DrawImage(
+                                                      nextImage,
+                                                      new SKRect(0, srcHalf, nextImage.Width, nextImage.Height),
+                                                      new SKRect(x, y + dstHalf, x + w, y + h),
+                                                      paint
+                                                  );
+                                              }, cache: true, cacheHint: cacheHint, grContext: null);
+                                          }
+                                      }
+                                  }
+
+
+                                  // ================================
+                                  // LAYER 3: FRONT FLIPPING CARD (CURRENT digit top half)
+                                  // Single continuous rotation from 0° to 180°
+                                  // ================================
+                                  float pivotX = x + w / 2f;
+                                  float pivotY = y + dstHalf;
+
+                                  // Full rotation throughout entire progress
+                                  float rotationProgress = p; // 0→1 maps to 0°→180°
+
+                                  // Calculate scale based on rotation angle
+                                  // At 0° (p=0): scale = 1 (horizontal, fully visible)
+                                  // At 90° (p=0.5): scale = 0 (vertical, edge-on)
+                                  // At 180° (p=1): scale = -1 (horizontal again, but flipped away)
+
+                                  float angle = rotationProgress * (float)Math.PI; // 0→π radians (0°→180°)
+                                  float scaleY = (float)Math.Cos(angle); // Goes 1 → 0 → -1
+
+                                  // Only draw when the FRONT side is visible (scaleY > 0)
+                                  if (scaleY > 0.01f)
+                                  {
+                                      byte darken = (byte)(rotationProgress * 2f * 120); // Darken throughout
+
+                                      g.Canvas.Save();
+                                      g.Canvas.Translate(pivotX, pivotY);
+                                      g.Canvas.Scale(1f, scaleY);
+
+                                      float depthPush = (float)Math.Sin(angle / 2f) * 3f; // Peaks at 90°
+                                      g.Canvas.Translate(0, -depthPush);
+
+                                      // Draw CURRENT digit's top half
+                                      g.Canvas.DrawImage(
+                                          image,
+                                          new SKRect(0, 0, image.Width, srcHalf),
+                                          new SKRect(-w / 2f, -dstHalf, w / 2f, 0),
+                                          paint
+                                      );
+
+                                      // Overlay darkening
+                                      if (darken > 0)
+                                      {
+                                          using var darkenPaint = new SKPaint
+                                          {
+                                              Color = new SKColor(0, 0, 0, Math.Min(darken, (byte)120)),
+                                              IsAntialias = true
+                                          };
+                                          g.Canvas.DrawRect(new SKRect(-w / 2f, -dstHalf, w / 2f, 0), darkenPaint);
+                                      }
+
+                                      // Edge highlight (only when not too flat)
+                                      if (scaleY > 0.1f && scaleY < 0.9f)
+                                      {
+                                          byte edgeAlpha = (byte)(Math.Sin(angle) * 35);
+                                          using var edgePaint = new SKPaint
+                                          {
+                                              IsAntialias = true,
+                                              Shader = SKShader.CreateLinearGradient(
+                                                  new SKPoint(-w / 2f, -2),
+                                                  new SKPoint(-w / 2f, 2),
+                                                  new[]
+                                                  {
+                          new SKColor(255, 255, 255, edgeAlpha),
+                          SKColors.Transparent
+                                                  },
+                                                  SKShaderTileMode.Clamp
+                                              )
+                                          };
+                                          g.Canvas.DrawRect(new SKRect(-w / 2f, -2, w / 2f, 0), edgePaint);
+                                      }
+
+                                      g.Canvas.Restore();
+                                  }
+                                  // When scaleY <= 0, the card has flipped past 90° and is facing away
+                                  // The background (LAYER 1 - next number) is now fully visible
+
+                                  // ================================
+                                  // HINGE SHADOW (Enhanced & Darker)
+                                  // ================================
+                                  float hingeStrength = (float)Math.Sin(p * Math.PI);
+
+                                  // Create a PERMANENT dark line at the hinge (always visible)
+                                  using (var hingeLine = new SKPaint
+                                  {
+                                      Color = new SKColor(0, 0, 0, 120), // Dark constant line
+                                      IsAntialias = true,
+                                      Style = SKPaintStyle.Fill
+                                  })
+                                  {
+                                      // Draw a 2-3px dark line at the hinge
+                                      g.Canvas.DrawRect(
+                                          new SKRect(x, y + dstHalf - 1, x + w, y + dstHalf + 2),
+                                          hingeLine
+                                      );
+                                  }
+
+                                  // Add dynamic shadow that intensifies during flip
+                                  byte shadowAlpha = (byte)(hingeStrength * 140);
+
+                                  if (shadowAlpha > 5)
+                                  {
+                                      using var shadowPaint = new SKPaint
+                                      {
+                                          IsAntialias = true,
+                                          Shader = SKShader.CreateLinearGradient(
+                                              new SKPoint(x, y + dstHalf + 2),
+                                              new SKPoint(x, y + dstHalf + 18),
+                                              new[]
+                                              {
+                              new SKColor(0, 0, 0, shadowAlpha),
+                              new SKColor(0, 0, 0, (byte)(shadowAlpha * 0.6f)),
+                              new SKColor(0, 0, 0, (byte)(shadowAlpha * 0.3f)),
+                              SKColors.Transparent
+                                              },
+                                              new[] { 0f, 0.25f, 0.6f, 1f },
+                                              SKShaderTileMode.Clamp
+                                          )
+                                      };
+
+                                      g.Canvas.DrawRect(
+                                          new SKRect(x, y + dstHalf + 2, x + w, y + dstHalf + 18),
+                                          shadowPaint
+                                      );
+                                  }
+
+                                  // Optional: Add subtle shadow ABOVE the hinge too (for realism)
+                                  byte topShadowAlpha = (byte)(hingeStrength * 40);
+                                  if (topShadowAlpha > 5)
+                                  {
+                                      using var topShadowPaint = new SKPaint
+                                      {
+                                          IsAntialias = true,
+                                          Shader = SKShader.CreateLinearGradient(
+                                              new SKPoint(x, y + dstHalf - 6),
+                                              new SKPoint(x, y + dstHalf - 1),
+                                              new[]
+                                              {
+                              SKColors.Transparent,
+                              new SKColor(0, 0, 0, topShadowAlpha)
+                                              },
+                                              SKShaderTileMode.Clamp
+                                          )
+                                      };
+
+                                      g.Canvas.DrawRect(
+                                          new SKRect(x, y + dstHalf - 6, x + w, y + dstHalf - 1),
+                                          topShadowPaint
+                                      );
+                                  }
+                              });
+                              break;
+                          }
+
+                      */
+
             }
 
             if (!preview && displayItem.Selected && displayItem is not GroupDisplayItem)

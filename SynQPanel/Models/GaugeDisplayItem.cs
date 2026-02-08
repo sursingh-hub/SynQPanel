@@ -54,7 +54,17 @@ namespace SynQPanel.Models
                     _initializingValueText = true;
 
                     // Defer to UI dispatcher to avoid layout re-entrancy
-                    System.Windows.Application.Current.Dispatcher.BeginInvoke(
+                    var app = System.Windows.Application.Current;
+                    var dispatcher = app?.Dispatcher;
+
+                    if (dispatcher == null || dispatcher.HasShutdownStarted || dispatcher.HasShutdownFinished)
+                    {
+                        // App is closing – abort initialization safely
+                        _initializingValueText = false;
+                        return;
+                    }
+
+                    dispatcher.BeginInvoke(
                         new Action(() =>
                         {
                             try
@@ -74,6 +84,7 @@ namespace SynQPanel.Models
                         }),
                         System.Windows.Threading.DispatcherPriority.Background
                     );
+
                 }
             }
         }

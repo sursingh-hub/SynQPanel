@@ -1,7 +1,9 @@
 ﻿using CommunityToolkit.Mvvm.ComponentModel;
 using SynQPanel.Models;
+using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Reflection;
+using System.Windows.Media.Imaging;
 
 namespace SynQPanel.ViewModels
 {
@@ -72,12 +74,23 @@ namespace SynQPanel.ViewModels
                 Icon = "DrinkCoffee20",
                 Title = "Support Development",
                 Description = "Show appreciation and help to offset costs incurred such web and certificate fees.",
-                ButtonText = "Donate",
-                NavigateUri = "https://www.buymeacoffee.com/synqpanel"
+                Buttons = new List<InfoLinkButton>
+                {
+                    new InfoLinkButton
+                    {
+                        Text = "Buy Me a Coffee",
+                        NavigateUri = "https://www.buymeacoffee.com/synqpanel"
+                    },
+                    new InfoLinkButton
+                    {
+                        Text = "Ko-fi",
+                        NavigateUri = "https://ko-fi.com/synqpanel"
+                    }
+                },
+                // important: set ButtonText to null so fallback button will not appear
+                ButtonText = null
             });
 
-         
-                      
             ThirdPartyLicenses.Add(new ThirdPartyLicense
             {
                 Name = "MahApps.Metro",
@@ -250,9 +263,28 @@ namespace SynQPanel.ViewModels
         public required string Icon { get; set; }
         public required string Title { get; set; }
         public required string Description { get; set; }
-        public required string ButtonText { get; set; }
+
+        // Optional single button
+        public string? ButtonText { get; set; }
+        public string? NavigateUri { get; set; }
+
+        // Optional multiple buttons
+        public List<InfoLinkButton>? Buttons { get; set; }
+
+        // Helper property for XAML: returns true if Buttons exist
+        public bool HasButtons => Buttons != null && Buttons.Count > 0;
+    }
+
+
+
+    public class InfoLinkButton
+    {
+        public required string Text { get; set; }
         public required string NavigateUri { get; set; }
     }
+
+
+
 
     public class ThirdPartyLicense
     {

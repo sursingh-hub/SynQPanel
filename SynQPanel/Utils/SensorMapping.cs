@@ -50,6 +50,22 @@ namespace SynQPanel.Utils
 
             MapLogger.Log($"[MAP-MATCH] Finding AIDA-only match for '{key}'");
 
+
+            // 🔴 HARD OVERRIDES for known panel keys
+            // These force specific AIDA/plugin IDs and bypass heuristics.
+            switch (normKey)
+            {
+                case "FCPU":
+                    return "FCPU";   // CPU fan RPM
+                case "TCPU":
+                    return "TCPU";   // CPU temperature
+                                     // add more explicit bindings if needed:
+                                     // case "FGPU1": return "FGPU1";
+                                     // case "TGPU1": return "TGPU1";
+            }
+
+
+
             // 1) desired types from explicit map or heuristic
             SensorType? desiredSensorType = null;
             HardwareType? desiredHardwareType = null;

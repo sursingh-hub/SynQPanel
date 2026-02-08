@@ -85,10 +85,43 @@ namespace SynQPanel.Models
             }
         }
 
+
+
+
+
+
+
+        // Override CalculatedPath to return the sensor value
+        public new string? CalculatedPath
+        {
+            get
+            {
+                var sensorReading = GetValue();
+                return sensorReading?.ValueText;
+            }
+        }
+
+
+
+        public new string? HttpUrl
+        {
+            get
+            {
+                // Return the sensor value directly, bypassing CalculatedPath to avoid recursion
+                var sensorReading = GetValue();
+                return sensorReading?.ValueText;
+            }
+            set { /* Ignore direct sets */ }
+        }
+
+
+
+
+        
         public new ImageType Type
         {
             get { return ImageType.URL; }
-            set { /* Do nothing, as this is always URL */  }
+            set { /* Do nothing, as this is always URL */ }
         }
 
         public new bool ReadOnly
@@ -96,11 +129,14 @@ namespace SynQPanel.Models
             get { return true; }
         }
 
+
+        /*
         public new string? HttpUrl
         {
             get { return CalculatedPath; }
             set { }
         }
+        
 
         public new string? CalculatedPath
         {
@@ -116,13 +152,19 @@ namespace SynQPanel.Models
                 return null;
             }
         }
+         */
+
+      
 
         public HttpImageDisplayItem(): base()
-        { }
+        {
+            Type = ImageType.URL;  
+        }
 
         public HttpImageDisplayItem(string name, Profile profile) : base(name, profile)
         {
             SensorName = name;
+            Type = ImageType.URL;
         }
         public HttpImageDisplayItem(string name, Profile profile, uint id, uint instance, uint entryId) : base(name, profile)
         {
@@ -131,6 +173,7 @@ namespace SynQPanel.Models
             Id = id;
             Instance = instance;
             EntryId = entryId;
+            Type = ImageType.URL;
         }
 
         public HttpImageDisplayItem(string name, Profile profile, string pluginSensorId) : base(name, profile)
@@ -138,6 +181,7 @@ namespace SynQPanel.Models
             SensorName = name;
             SensorType = SensorType.Plugin;
             PluginSensorId = pluginSensorId ?? string.Empty;
+            Type = ImageType.URL;  // Tell base this is a URL image
         }
 
         public SensorReading? GetValue()
@@ -154,6 +198,8 @@ namespace SynQPanel.Models
         }
 
 
+
+        /*
         public override SKSize EvaluateSize()
         {
             var result = base.EvaluateSize();
@@ -182,5 +228,24 @@ namespace SynQPanel.Models
 
             return result;
         }
+        */
+
+        public override SKSize EvaluateSize()
+        {
+            // 🔴 Update base HttpUrl from sensor BEFORE base.EvaluateSize() is called
+            var sensorReading = GetValue();
+            if (sensorReading.HasValue && !string.IsNullOrWhiteSpace(sensorReading.Value.ValueText))
+            {
+                base.HttpUrl = sensorReading.Value.ValueText;
+            }
+
+            // Now call base which will use the updated HttpUrl
+            return base.EvaluateSize();
+        }
+
+
+
+
+
     }
 }

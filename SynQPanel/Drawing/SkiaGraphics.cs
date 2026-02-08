@@ -90,6 +90,60 @@ namespace SynQPanel.Drawing
 
 
 
+
+
+
+        public void DrawImage(
+    SKImage image,
+    SKRect sourceRect,
+    int x,
+    int y,
+    int width,
+    int height,
+    int rotation = 0,
+    bool flipX = false,
+    bool flipY = false)
+        {
+            if (image == null)
+                return;
+
+            using var paint = new SKPaint
+            {
+                IsAntialias = true
+            };
+
+            var destRect = new SKRect(x, y, x + width, y + height);
+            var sampling = new SKSamplingOptions(SKFilterMode.Linear, SKMipmapMode.Nearest);
+
+            Canvas.Save();
+
+            if (flipX || flipY)
+            {
+                float scaleX = flipX ? -1 : 1;
+                float scaleY = flipY ? -1 : 1;
+                int cx = x + width / 2;
+                int cy = y + height / 2;
+                Canvas.Scale(scaleX, scaleY, cx, cy);
+            }
+
+            if (rotation != 0)
+            {
+                float cx = x + width / 2f;
+                float cy = y + height / 2f;
+                Canvas.RotateDegrees(rotation, cx, cy);
+            }
+
+            Canvas.DrawImage(image, sourceRect, destRect, sampling, paint);
+            Canvas.Restore();
+        }
+
+
+
+
+
+
+
+
         public void DrawImage(LockedImage lockedImage, int x, int y, int width, int height, int rotation = 0, int rotationCenterX = 0, int rotationCenterY = 0, bool cache = true, string cacheHint = "default")
         {
             if (lockedImage.Type == LockedImage.ImageType.SVG)

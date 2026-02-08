@@ -277,7 +277,7 @@ namespace SynQPanel.Utils
             }
             else if (item is ImageDisplayItem imageDisplayItem)
             {
-                if (imageDisplayItem.CalculatedPath != null)
+                if (!string.IsNullOrEmpty(imageDisplayItem.CalculatedPath))
                 {
                     assetFiles.Remove(imageDisplayItem.CalculatedPath);
                 }
@@ -286,12 +286,36 @@ namespace SynQPanel.Utils
             {
                 foreach (var image in gaugeDisplayItem.Images)
                 {
-                    if (image.CalculatedPath != null)
+                    if (!string.IsNullOrEmpty(image.CalculatedPath))
                     {
                         assetFiles.Remove(image.CalculatedPath);
                     }
                 }
             }
+            // 🔵 NEW: protect FlipDisplayItem assets
+            else if (item is FlipDisplayItem flip)
+            {
+                try
+                {
+                    var folder = flip.CalculatedImageFolder;
+                    if (string.IsNullOrWhiteSpace(folder))
+                        return;
+
+                    if (!Directory.Exists(folder))
+                        return;
+
+                    // Remove all files from this folder from the "to delete" list
+                    foreach (var file in Directory.GetFiles(folder))
+                    {
+                        assetFiles.Remove(file);
+                    }
+                }
+                catch
+                {
+                    // Ignore errors, same philosophy as rest of cleanup
+                }
+            }
         }
+
     }
 }

@@ -141,7 +141,7 @@
                     Appearance="Success"
                     Click="ButtonAddHttpImage_Click"
                     Icon="{ui:SymbolIcon WebAsset20}"
-                    IsEnabled="True"
+                    IsEnabled="False"
                     ToolTip="Add selected sensor as Http image" />
 
                 <ui:Button
