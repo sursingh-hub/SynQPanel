@@ -234,26 +234,26 @@ namespace SynQPanel.ViewModels
             });
 
             // Initialize contributors
-                 
+
+            Contributors.Add(new Contributor
+            {
+                Name = "Habib Rehman",
+                Description = "Author of the InfoPanel project, from which SynQPanel originally derived before evolving into an independent AIDA64-focused application.",
+                Url = "https://github.com/habibrehmansg/infopanel"
+            });
+
             Contributors.Add(new Contributor
             {
                 Name = "Surjeet Skins",
-                Description = "For your graphical musings, amazing panels and encouragement behind the scenes.", 
+                Description = "For your graphical musings, amazing panels and encouragement behind the scenes.",
                 Url = "https://surjeetskins.great-site.net/"
             });
 
             Contributors.Add(new Contributor
             {
-                Name = "Habib Rehman",
-                Description = "SynQPanel is derived from an open-source codebase originally authored by Habib Rehman, and has since been independently developed, significantly modified, and extended by the SynQPanel contributors.\r\n",
-            });
-
-
-            Contributors.Add(new Contributor
-            {
                 Name = "Everyone else",
                 Description = "For those that messaged me or posted your questions, feedback and panel designs AIDA forums.",
-                Url = "https://forums.aida64.com/topic/22019-%F0%9F%9A%80-introducing-synqpanel-a-new-panel-based-visualization-tool-for-aida64-users/"
+                Url = "https://forums.aida64.com/topic/22019-introducing-synqpanel/"
             });
         }
     }

@@ -161,7 +161,7 @@
             <!--  Start right grid  -->
             <StackPanel
             Grid.Column="1"
-            Margin="10,10,10,10"
+            Margin="10,0,10,10"
             VerticalAlignment="Center">
 
                 <!-- COMMUNITY -->
@@ -245,9 +245,8 @@
                             </Grid.ColumnDefinitions>
 
                             <!-- Text -->
-                            <StackPanel>
+                            <StackPanel VerticalAlignment="Center">
                                 <TextBlock
-                                Margin="0,20,0,0"
                                 FontSize="13"
                                 FontWeight="Medium"
                                 Text="Support ongoing development" />
@@ -259,37 +258,47 @@
                                 Text="Love SynQPanel? Consider supporting it here:" />
                             </StackPanel>
 
-                            <!-- Buttons (right, stacked) -->
+                            <!-- Buttons (right, horizontal) -->
                             <StackPanel
                             Grid.Column="1"
-                            Margin="16,0,0,0"
+                            Margin="20,0,0,0"
+                            Orientation="Horizontal"
                             VerticalAlignment="Center">
 
                                 <!-- Buy Me a Coffee -->
                                 <ui:Anchor
                                 Background="Transparent"
                                 BorderThickness="0"
-                                NavigateUri="https://www.buymeacoffee.com/synqpanel">
-                                    <Image
-                                    Width="132"
-                                    Height="32"
-                                    Stretch="Uniform"
-                                    Source="pack://application:,,,/Resources/Images/bmc-button.png" />
+                                NavigateUri="https://www.buymeacoffee.com/synqpanel"
+                                ToolTip="Buy me a coffee">
+                                    <Border
+                                    Width="140"
+                                    Height="36"
+                                    CornerRadius="4"
+                                    Background="Transparent">
+                                        <Image
+                                        Stretch="Uniform"
+                                        Source="pack://application:,,,/Resources/Images/bmc-button.png" />
+                                    </Border>
                                 </ui:Anchor>
 
                                 <!-- Ko-fi -->
                                 <ui:Anchor
-                                Margin="0,8,0,0"
+                                Margin="10,0,0,0"
                                 Background="Transparent"
                                 BorderThickness="0"
-                                NavigateUri="https://ko-fi.com/synqpanel">
-                                <Image
-                                Width="160"
-                                Height="35"
-                                Stretch="Uniform"
-                                Source="pack://application:,,,/Resources/Images/kofi-button.png" />
+                                NavigateUri="https://ko-fi.com/synqpanel"
+                                ToolTip="Support on Ko-fi">
+                                    <Border
+                                    Width="140"
+                                    Height="36"
+                                    CornerRadius="4"
+                                    Background="Transparent">
+                                        <Image
+                                        Stretch="Uniform"
+                                        Source="pack://application:,,,/Resources/Images/kofi-button.png" />
+                                    </Border>
                                 </ui:Anchor>
-
                             </StackPanel>
                         </Grid>
                     </ui:CardControl.Header>

@@ -1,2 +1,2 @@
-cd /d "C:\Users\Habib\VisualStudioProjects\SynQPanel\SynQPanel" &msbuild "SynQPanel.csproj" /t:sdvViewer /p:configuration="Debug" /p:platform="x86" /p:SolutionDir="C:\Users\Habib\VisualStudioProjects\SynQPanel" 
+cd /d "C:\Users\SynQPanel\VisualStudioProjects\SynQPanel\SynQPanel" &msbuild "SynQPanel.csproj" /t:sdvViewer /p:configuration="Debug" /p:platform="x86" /p:SolutionDir="C:\Users\SynQPanel\VisualStudioProjects\SynQPanel" 
 exit %errorlevel% 

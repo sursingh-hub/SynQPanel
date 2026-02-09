@@ -86,11 +86,6 @@ namespace SynQPanel.Models
         }
 
 
-
-
-
-
-
         // Override CalculatedPath to return the sensor value
         public new string? CalculatedPath
         {
@@ -113,10 +108,6 @@ namespace SynQPanel.Models
             }
             set { /* Ignore direct sets */ }
         }
-
-
-
-
         
         public new ImageType Type
         {
@@ -128,33 +119,6 @@ namespace SynQPanel.Models
         {
             get { return true; }
         }
-
-
-        /*
-        public new string? HttpUrl
-        {
-            get { return CalculatedPath; }
-            set { }
-        }
-        
-
-        public new string? CalculatedPath
-        {
-            get
-            {
-                var sensorReading = GetValue();
-
-                if (sensorReading.HasValue && sensorReading.Value.ValueText != null)
-                {
-                    return sensorReading.Value.ValueText;
-                }
-
-                return null;
-            }
-        }
-         */
-
-      
 
         public HttpImageDisplayItem(): base()
         {
@@ -196,40 +160,6 @@ namespace SynQPanel.Models
                 _ => null,
             };
         }
-
-
-
-        /*
-        public override SKSize EvaluateSize()
-        {
-            var result = base.EvaluateSize();
-
-            if (result.Width == 0 || result.Height == 0)
-            {
-                var sensorReading = GetValue();
-
-                if (sensorReading.HasValue && sensorReading.Value.ValueText != null && sensorReading.Value.ValueText.IsUrl())
-                {
-                    var cachedImage = SynQPanel.Cache.GetLocalImage(this);
-                    if (cachedImage != null)
-                    {
-                        if (result.Width == 0)
-                        {
-                            result.Width = cachedImage.Width * Scale / 100.0f;
-                        }
-
-                        if (result.Height == 0)
-                        {
-                            result.Height = cachedImage.Height * Scale / 100.0f;
-                        }
-                    }
-                }
-            }
-
-            return result;
-        }
-        */
-
         public override SKSize EvaluateSize()
         {
             // 🔴 Update base HttpUrl from sensor BEFORE base.EvaluateSize() is called
@@ -242,10 +172,5 @@ namespace SynQPanel.Models
             // Now call base which will use the updated HttpUrl
             return base.EvaluateSize();
         }
-
-
-
-
-
     }
 }

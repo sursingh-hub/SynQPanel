@@ -263,9 +263,74 @@ namespace SynQPanel.ViewModels
                         }
                     ]
                 };
+
+                var version103 =
+                new UpdateVersion
+                {
+                    Version = "v1.0.3",
+                    Expanded = false,
+                    Title = "Weather & Time add-ons, Flip Clock, and stability hardening",
+                    Items =
+                    [
+                        new UpdateVersionItem
+                        {
+                            Title = "Runtime Data Storage & Stability",
+                            Description =
+                            [
+                                "Added configurable runtime data folders for assets, logs, and cache, while keeping profiles and settings in AppData for safer upgrades and backups.",
+                                "Improved XML parsing robustness to better handle malformed or partial files without crashing.",
+                                "Hardened shared-memory handling to reduce the risk of corruption-related crashes and improve long‑running stability."
+                            ]
+                        },
+
+                        new UpdateVersionItem
+                        {
+                            Title = "New TimePulse Add-on",
+                            Description =
+                            [
+                                "Introduced the TimePulse add-on to drive time-based triggers and visual pulses for panels.",
+                                "Enables creating more dynamic, rhythm-based visual elements that react to seconds, minutes, or custom time intervals."
+                            ]
+                        },
+
+                        new UpdateVersionItem
+                        {
+                            Title = "New Weather Add-on",
+                            Description =
+                            [
+                                "Added a Weather add-on powered by WeatherAPI.com, exposing current conditions, detailed daily forecasts, air quality, and astronomy data.",
+                                "Added multiple icon URL sensors (current, today, tomorrow, hourly) to build rich weather widgets with live condition icons on the canvas."
+                            ]
+                        },
+
+                        new UpdateVersionItem
+                        {
+                            Title = "Standalone Flip Clock",
+                            Description =
+                            [
+                                "Implemented a standalone Flip Clock mode that runs independently from AIDA or other data sources.",
+                                "Provides smooth flipping digit animations suitable for use as a primary time widget or background clock."
+                            ]
+                        },
+
+                        new UpdateVersionItem
+                        {
+                            Title = "Improvements & Fixes",
+                            Description =
+                            [
+                                "Improved HTTP image caching so plugin-provided icon URLs stay in memory reliably without premature eviction or disposed-image errors.",
+                                "Refined plugin sensor UI so the \"Add Http image\" action is only enabled for URL-based sensors, including the new weather icon sensors.",
+                                "Fixed CPU fan selection issue that was switching to a different sensor source.",
+                                "General minor stability and UX improvements across plugins and the rendering pipeline."
+                            ]
+                        }
+                    ]
+                };
+
             UpdateVersions.Add(version100);
             UpdateVersions.Add(version101);
             UpdateVersions.Add(version102);
+            UpdateVersions.Add(version103);
         }
     }
 

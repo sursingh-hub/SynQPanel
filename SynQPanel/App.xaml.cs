@@ -214,69 +214,22 @@ namespace SynQPanel
         }
 
         protected override void OnExit(ExitEventArgs e)
-        {
-            System.Diagnostics.Debug.WriteLine("========== APPLICATION EXITING ==========");
-            Console.WriteLine("========== APPLICATION EXITING ==========");
-            Logger.Information("Application exiting");
+		{
+		Logger.Information("Application exiting");
 
-            // Check files before any save (use different variable name)
-            var testGuid = "09bd1792-09b0-410f-be16-f247493d8f30"; // Your GUID from logs
-            var testAssetFolder = Path.Combine(AppPaths.Assets, testGuid);
-            if (Directory.Exists(testAssetFolder))
-            {
-                var fileCount = Directory.GetFiles(testAssetFolder).Length;
-                System.Diagnostics.Debug.WriteLine($"Files in asset folder BEFORE save: {fileCount}");
-                Console.WriteLine($"Files in asset folder BEFORE save: {fileCount}");
-                Logger.Information("Files in test GUID folder BEFORE save: {FileCount}", fileCount);
-            }
+		try
+		{
+			ConfigModel.Instance.SaveSettings();
+			Logger.Information("Settings saved on exit");
+		}
+		catch (Exception ex)
+		{
+			Logger.Error(ex, "Failed to save settings on exit");
+		}
 
-            // 🔍 DIAGNOSTIC: Log all profiles and their assets BEFORE saving
-            try
-            {
-                var profiles = ConfigModel.Instance.GetProfilesCopy();
-                Logger.Information("=== EXIT DIAGNOSTIC START ===");
-                Logger.Information("Total profiles at exit: {Count}", profiles.Count);
-
-                foreach (var p in profiles)
-                {
-                    Logger.Information("Profile: {Name} | GUID: {Guid}", p.Name, p.Guid);
-
-                    // Check if asset folder exists
-                    var assetFolder = Path.Combine(AppPaths.Assets, p.Guid.ToString());
-                    if (Directory.Exists(assetFolder))
-                    {
-                        var fileCount = Directory.GetFiles(assetFolder).Length;
-                        Logger.Information("  - Asset folder exists with {FileCount} files", fileCount);
-                    }
-                    else
-                    {
-                        Logger.Information("  - Asset folder DOES NOT EXIST");
-                    }
-                }
-                Logger.Information("=== EXIT DIAGNOSTIC END ===");
-            }
-            catch (Exception ex)
-            {
-                Logger.Error(ex, "Diagnostic failed");
-            }
-
-            try
-            {
-                ConfigModel.Instance.SaveSettings();
-                Logger.Information("Settings saved on exit");
-            }
-            catch (Exception ex)
-            {
-                Logger.Error(ex, "Failed to save settings on exit");
-            }
-
-            Log.CloseAndFlush();
-            base.OnExit(e);
-        }
-
-
-
-
+		Log.CloseAndFlush();
+		base.OnExit(e);
+		}
 
         protected override async void OnStartup(StartupEventArgs e)
         {
