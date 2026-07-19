@@ -379,6 +379,43 @@ namespace SynQPanel.ViewModels
                     ]
                 };
 
+                var version105 = new UpdateVersion
+                {
+                    Version = "v1.0.5",
+                    Expanded = false,
+                    Title = "Import Fidelity, Macro Reliability & Butter-Smooth Gauges",
+                                    Items =
+                    [
+                        new UpdateVersionItem
+                            {
+                                Title = "Improved AIDA Import Compatibility",
+                                Description =
+                                [
+                                    "Fixed an issue where imported AIDA sensors could generate duplicate text layers. Sensors now render their own labels internally, resulting in a cleaner layer list.",
+                                    "Preserved the original front-to-back visual stacking (Z-order) from imported AIDA layouts, ensuring imported panels match their original appearance.",
+                                    "SynQPanel now correctly imports and applies Right-Align formatting for AIDA text and sensor objects, with the editor's alignment buttons automatically reflecting the imported state."
+                                ]
+                            },
+                            new UpdateVersionItem
+                            {
+                                Title = "Reliable System Macros",
+                                Description =
+                                [
+                                    "Fixed an issue where hardware macros such as $CPUMODEL and other system variables could be permanently replaced with the current PC's hardware information when saving.",
+                                    "Profiles now preserve the original macro tags while dynamically displaying the actual hardware information at runtime, making exported profiles fully portable across different systems."
+                                ]
+                            },
+                            new UpdateVersionItem
+                            {
+                                Title = "Butter Glide Dynamics",
+                                Description =
+                                [
+                                    "Introduced the new 'Butter' Glide Dynamics rendering approach for gauges.",
+                                    "Eliminates crossfade ghosting during gauge movement, delivering noticeably smoother and more responsive animations."
+                                ]
+                            }
+                    ]
+                };
 
 
             UpdateVersions.Add(version100);
@@ -386,6 +423,7 @@ namespace SynQPanel.ViewModels
             UpdateVersions.Add(version102);
             UpdateVersions.Add(version103);
             UpdateVersions.Add(version104);
+            UpdateVersions.Add(version105);
         }
     }
 

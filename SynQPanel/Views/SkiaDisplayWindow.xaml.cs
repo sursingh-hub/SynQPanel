@@ -108,10 +108,5 @@ namespace SynQPanel.Views
                 }
             }
         }
-    
-    
-    
-    
-    
     }
 }

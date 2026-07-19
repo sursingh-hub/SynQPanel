@@ -120,8 +120,30 @@ namespace SynQPanel.Models
                 idEl.Value = newId;
             }
 
-            // Process each display item with provenance
-            foreach (var item in displayItems)
+            // Local helper to flatten groups so nested items are ordered and saved correctly
+            IEnumerable<DisplayItem> FlattenItems(IEnumerable<DisplayItem> items)
+            {
+                foreach (var item in items)
+                {
+                    if (item is GroupDisplayItem group)
+                    {
+                        foreach (var child in FlattenItems(group.DisplayItems))
+                            yield return child;
+                    }
+                    else
+                    {
+                        yield return item;
+                    }
+                }
+            }
+
+            var flatItems = FlattenItems(displayItems).ToList();
+
+
+
+
+                // Process each display item with provenance
+                foreach (var item in flatItems)
             {
                 try
                 {
@@ -990,24 +1012,20 @@ namespace SynQPanel.Models
                                 break;
                         }
 
-                        // Re-serialize root children into a single compact line and replace
+                        // WITH THIS:
                         var newInner = string.Concat(root.Elements().Select(e => e.ToString(SaveOptions.DisableFormatting)));
-                        outLines[li] = newInner;
-
-                        // Update provenance so future saves use the new line content
                         item.OriginalRawXml = newInner;
+                        // DO NOT PUT IT BACK INTO outLines YET. We will re-order everything at the end.
+
                     }
                     else
                     {
-                        // No provenance -> append a new snippet
+                        // No provenance - create a new snippet
                         var snippet = CreateSnippetForNewItem(item);
-                        var newList = outLines.ToList();
-                        newList.Add(snippet);
-                        outLines = newList.ToArray();
-                        // set provenance
-                        item.OriginalLineIndex = outLines.Length - 1;
                         item.OriginalRawXml = snippet;
+                        // We will assign OriginalLineIndex at the end when we rebuild the file.
                     }
+
                 }
                 catch (Exception ex)
                 {
@@ -1016,16 +1034,64 @@ namespace SynQPanel.Models
                 }
             }
 
+            // --- REBUILD FILE IN EXACT Z-ORDER ---
+
+            // --- Z-ORDER SLOT MAPPING ---
+            var availableSlots = new List<int>();
+
+            // 1. Collect all valid line slots previously occupied by our items
+            foreach (var item in flatItems)
+            {
+                if (item.OriginalLineIndex.HasValue && item.OriginalLineIndex.Value >= 0 && item.OriginalLineIndex.Value < outLines.Length)
+                {
+                    availableSlots.Add(item.OriginalLineIndex.Value);
+                }
+            }
+
+            // 2. Remove duplicates and sort slots to match file order (top-to-bottom / back-to-front)
+            availableSlots = availableSlots.Distinct().ToList();
+            availableSlots.Sort();
+
+            // 3. Add new slots at the end of the file for any newly created items
+            int newSlotIndex = outLines.Length;
+            while (availableSlots.Count < flatItems.Count)
+            {
+                availableSlots.Add(newSlotIndex);
+                newSlotIndex++;
+            }
+
+            // 4. Expand the outLines array if new items were added
+            if (newSlotIndex > outLines.Length)
+            {
+                Array.Resize(ref outLines, newSlotIndex);
+            }
+
+            // 5. Map the items into the physical slots based on the UI Z-order
+            for (int i = 0; i < flatItems.Count; i++)
+            {
+                var item = flatItems[i];
+                int slot = availableSlots[i];
+
+                string raw = item.OriginalRawXml ?? string.Empty;
+
+                // Safety strip of <item> wrapper in case it lingered from previous tests
+                if (raw.StartsWith("<item>", StringComparison.OrdinalIgnoreCase) && raw.EndsWith("</item>", StringComparison.OrdinalIgnoreCase))
+                {
+                    raw = raw.Substring(6, raw.Length - 13);
+                }
+
+                outLines[slot] = raw;
+                item.OriginalLineIndex = slot; // update provenance for next save
+            }
+
             // Atomic save: write tmp, backup original, then replace
             var tempPath = sensorPanelPath + ".tmp";
             var backupPath = sensorPanelPath + ".bak";
-            
 
-            // write only non-null lines
-            File.WriteAllLines(
-          tempPath,
-          outLines.Where(l => l != null).ToArray(),
-          encoding);
+            // The .Where(l => l != null) drops any items you explicitly deleted in the UI!
+            File.WriteAllLines(tempPath, outLines.Where(l => l != null).ToArray(), encoding);
+
+
 
 
             try

@@ -1,14 +1,15 @@
-﻿using SynQPanel.Extensions;
-using SynQPanel.Models;
-using Serilog;
+﻿using Serilog;
 using SkiaSharp;
+using SynQPanel.Extensions;
+using SynQPanel.Models;
 using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Linq;
 using System.Text.RegularExpressions;
 using Topten.RichTextKit;
-using System.Diagnostics;
+using Vortice.Direct2D1.Effects;
 
 namespace SynQPanel.Drawing
 {
@@ -42,15 +43,15 @@ namespace SynQPanel.Drawing
             this.Canvas.Dispose();
         }
 
-        public void DrawBitmap(SKBitmap bitmap, int x, int y, int width, int height, int rotation = 0, int rotationCenterX = 0, int rotationCenterY = 0, bool flipX = false, bool flipY = false)
+        public void DrawBitmap(SKBitmap bitmap, int x, int y, int width, int height, int rotation = 0, int rotationCenterX = 0, int rotationCenterY = 0, bool flipX = false, bool flipY = false, float opacity = 1.0f)
         {
             using var image = SKImage.FromBitmap(bitmap);
-            DrawImage(image, x, y, width, height, rotation, rotationCenterX, rotationCenterY, flipX, flipY);
+            DrawImage(image, x, y, width, height, rotation, rotationCenterX, rotationCenterY, flipX, flipY, opacity);
         }
 
         public void DrawImage(SKImage image, int x, int y, int width, int height,
                       int rotation = 0, int rotationCenterX = 0, int rotationCenterY = 0,
-                      bool flipX = false, bool flipY = false)
+                      bool flipX = false, bool flipY = false, float opacity = 1.0f)
         {
             if (image == null)
             {
@@ -61,6 +62,13 @@ namespace SynQPanel.Drawing
             {
                 IsAntialias = true
             };
+
+            // Apply opacity directly to the paint
+            if (opacity < 1.0f)
+            {
+                byte alpha = (byte)(Math.Clamp(opacity, 0f, 1f) * 255);
+                paint.Color = new SKColor(255, 255, 255, alpha);
+            }
 
             var destRect = new SKRect(x, y, x + width, y + height);
             var sampling = new SKSamplingOptions(SKFilterMode.Linear, SKMipmapMode.Nearest);
@@ -87,6 +95,8 @@ namespace SynQPanel.Drawing
             Canvas.DrawImage(image, destRect, sampling, paint);
             Canvas.Restore();
         }
+
+
 
 
 
@@ -144,26 +154,42 @@ namespace SynQPanel.Drawing
 
 
 
-        public void DrawImage(LockedImage lockedImage, int x, int y, int width, int height, int rotation = 0, int rotationCenterX = 0, int rotationCenterY = 0, bool cache = true, string cacheHint = "default")
+        public void DrawImage(LockedImage lockedImage, int x, int y, int width, int height, int rotation = 0, int rotationCenterX = 0, int rotationCenterY = 0, bool cache = true, string cacheHint = "default", float opacity = 1.0f)
         {
             if (lockedImage.Type == LockedImage.ImageType.SVG)
             {
                 lockedImage.AccessSVG(picture =>
                 {
+                    // For SVG transparency, wrap the drawing in an alpha layer
+                    if (opacity < 1.0f)
+                    {
+                        byte alpha = (byte)(Math.Clamp(opacity, 0f, 1f) * 255);
+                        using var layerPaint = new SKPaint { Color = new SKColor(255, 255, 255, alpha) };
+                        Canvas.SaveLayer(layerPaint);
+                    }
+
                     Canvas.DrawPicture(picture, x, y, width, height, rotation);
+
+                    if (opacity < 1.0f)
+                    {
+                        Canvas.Restore();
+                    }
                 });
             }
             else
             {
-                lockedImage.AccessSK(width, height, bitmap =>
+                lockedImage.AccessSK(width, height, skImage =>
                 {
-                    if (bitmap != null)
+                    if (skImage != null)
                     {
-                        DrawImage(bitmap, x, y, width, height, rotation, rotationCenterX, rotationCenterY);
+                        // AccessSK provides an SKImage, so we call DrawImage directly!
+                        DrawImage(skImage, x, y, width, height, rotation, rotationCenterX, rotationCenterY, false, false, opacity);
                     }
                 }, cache, cacheHint, GRContext);
             }
         }
+
+
 
         public void DrawLine(float x1, float y1, float x2, float y2, string color, float strokeWidth)
         {
@@ -254,7 +280,8 @@ namespace SynQPanel.Drawing
                 FontWidth = (SKFontStyleWidth)typeface.FontWidth,
                 TextColor = SKColor.Parse(color),
                 Underline = underline ? UnderlineStyle.Solid : UnderlineStyle.None,
-                StrikeThrough = strikeout ? StrikeThroughStyle.Solid : StrikeThroughStyle.None
+                StrikeThrough = strikeout ? StrikeThroughStyle.Solid : StrikeThroughStyle.None,
+
             };
 
             tb.AddText(text, style);

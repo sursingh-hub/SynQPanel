@@ -165,17 +165,22 @@
                     <ColumnDefinition Width="*" />
                 </Grid.ColumnDefinitions>
                 <StackPanel Margin="0,0,5,0">
+                    <!--OLD-->
                     <ComboBox
-                        Grid.Column="1"
-                        ItemsSource="{Binding InstalledFonts, RelativeSource={RelativeSource AncestorType=local:TextProperties}}"
-                        ScrollViewer.VerticalScrollBarVisibility="Visible"
-                        SelectedValue="{Binding TextDisplayItem.Font, RelativeSource={RelativeSource AncestorType=local:TextProperties}}">
+                     Grid.Column="1"
+                     ItemsSource="{Binding InstalledFonts, RelativeSource={RelativeSource AncestorType=local:TextProperties}}"
+                     ScrollViewer.VerticalScrollBarVisibility="Visible"
+                     IsEditable="True"
+                     SelectedValue="{Binding TextDisplayItem.Font, RelativeSource={RelativeSource AncestorType=local:TextProperties}}">
                         <ComboBox.ItemTemplate>
                             <DataTemplate>
                                 <TextBlock FontFamily="{Binding Converter={StaticResource FontFamilyConverter}}" Text="{Binding}" />
                             </DataTemplate>
                         </ComboBox.ItemTemplate>
                     </ComboBox>
+
+
+
                     <TextBlock
                         Margin="5,0,0,0"
                         FontSize="12"
@@ -187,6 +192,7 @@
                         Grid.Column="1"
                         ItemsSource="{Binding FontStyles, RelativeSource={RelativeSource AncestorType=local:TextProperties}}"
                         ScrollViewer.VerticalScrollBarVisibility="Visible"
+                        IsEditable="True"
                         SelectedValue="{Binding TextDisplayItem.FontStyle, RelativeSource={RelativeSource AncestorType=local:TextProperties}}">
                         <!--<ComboBox.ItemTemplate>
                             <DataTemplate>

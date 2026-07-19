@@ -40,7 +40,24 @@
   <img src="docs/images/demo.gif" width="90%" alt="SynQPanel Demo"/>
 </p>
 
-<p align="center"><em>Custom panels showing CPU, GPU, and system metrics using AIDA Shared Memory.</em></p>
+<br>
+
+<p align="center">
+  <img src="docs/images/demo-2.gif" width="90%" alt="SynQPanel Additional Demo"/>
+</p>
+
+<p align="center">
+  <em>Custom panels displaying CPU, GPU, and system metrics via AIDA Shared Memory. Weather and Flip Clock widgets are powered by <strong>SynQPanel’s</strong> internal add-ons.</em>
+</p>
+
+<br>
+
+<p align="center">
+  <sub>
+    Visual assets and inspiration courtesy of <b>SurjeetSkins</b> and <b>BHSY</b>.  
+    Huge thanks to them for their amazing work in the system monitoring and panel customization community.
+  </sub>
+</p>
 
 ---
 

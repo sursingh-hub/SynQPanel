@@ -126,23 +126,38 @@
 
                     <Style.Triggers>
 
-                        <!-- AIDA64 sensor -->
+                        <!-- 1. Explicit legacy AIDA64 Type -->
                         <DataTrigger Binding="{Binding SensorType}" Value="AIDA64">
-                            <Setter Property="Source"
-                            Value="/SynQPanel;component/Resources/Images/logo.ico" />
+                            <Setter Property="Source" Value="/SynQPanel;component/Resources/Images/logo.ico" />
                             <Setter Property="Visibility" Value="Visible" />
                         </DataTrigger>
 
-                        <!-- Plugin sensor -->
-                        <DataTrigger Binding="{Binding SensorType}" Value="Plugin">
-                            <Setter Property="Source"
-                            Value="/SynQPanel;component/Resources/Images/logo.ico" />
+                        <!-- 2. Plugin Type but NOT an Add-on (FallbackValue fixes Gauges/Graphs!) -->
+                        <MultiDataTrigger>
+                            <MultiDataTrigger.Conditions>
+                                <Condition Binding="{Binding SensorType}" Value="Plugin" />
+                                <Condition Binding="{Binding IsAddOn, FallbackValue=False}" Value="False" />
+                            </MultiDataTrigger.Conditions>
+                            <Setter Property="Source" Value="/SynQPanel;component/Resources/Images/logo.ico" />
                             <Setter Property="Visibility" Value="Visible" />
-                        </DataTrigger>
+                        </MultiDataTrigger>
+
+                        <!-- 3. Plugin Type AND IS an Add-on -->
+                        <MultiDataTrigger>
+                            <MultiDataTrigger.Conditions>
+                                <Condition Binding="{Binding SensorType}" Value="Plugin" />
+                                <Condition Binding="{Binding IsAddOn, FallbackValue=False}" Value="True" />
+                            </MultiDataTrigger.Conditions>
+                            <Setter Property="Source" Value="/SynQPanel;component/Resources/Images/add.ico" />
+                            <Setter Property="Visibility" Value="Visible" />
+                        </MultiDataTrigger>
 
                     </Style.Triggers>
                 </Style>
             </Image.Style>
+
+
+
         </Image>
 
 

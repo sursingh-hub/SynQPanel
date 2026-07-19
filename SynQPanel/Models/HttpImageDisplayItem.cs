@@ -1,8 +1,9 @@
 ﻿using CommunityToolkit.Mvvm.ComponentModel;
+using SkiaSharp;
 using SynQPanel.Enums;
 using SynQPanel.Extensions;
-using SkiaSharp;
 using System;
+using System.Linq;
 
 namespace SynQPanel.Models
 {
@@ -26,6 +27,8 @@ namespace SynQPanel.Models
             set
             {
                 SetProperty(ref _sensorIdType, value);
+                OnPropertyChanged(nameof(IsAddOn)); // <--- TELLS THE ICON TO UPDATE!
+
             }
         }
 
@@ -71,6 +74,7 @@ namespace SynQPanel.Models
                 {
                     _pluginSensorId = value;
                     OnPropertyChanged(nameof(PluginSensorId)); // ensures UI updates!
+                    OnPropertyChanged(nameof(IsAddOn)); // <--- ADD THIS HERE TOO!
                 }
             }
         }
@@ -172,5 +176,26 @@ namespace SynQPanel.Models
             // Now call base which will use the updated HttpUrl
             return base.EvaluateSize();
         }
+
+        //Icon Helper
+        public bool IsAddOn
+        {
+            get
+            {
+                if (SensorType != Enums.SensorType.Plugin || string.IsNullOrWhiteSpace(PluginSensorId))
+                    return false;
+
+                var addOnReadings = SynQPanel.Monitors.PluginMonitor.GetOrderedList();
+                if (addOnReadings != null)
+                {
+                    return addOnReadings.Any(r => string.Equals(r.Id, PluginSensorId, StringComparison.OrdinalIgnoreCase));
+                }
+
+                return false;
+            }
+        }
+
+
+
     }
 }

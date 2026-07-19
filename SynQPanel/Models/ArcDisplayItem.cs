@@ -1,8 +1,9 @@
 ﻿using CommunityToolkit.Mvvm.ComponentModel;
-using SynQPanel.Enums;
 using SkiaSharp;
+using SynQPanel.Enums;
 using System;
 using System.Collections.ObjectModel;
+using System.Linq;
 
 namespace SynQPanel.Models
 {
@@ -58,6 +59,7 @@ namespace SynQPanel.Models
                 {
                     _pluginSensorId = value;
                     OnPropertyChanged(nameof(PluginSensorId));
+                    OnPropertyChanged(nameof(IsAddOn));
                 }
             }
         }
@@ -80,7 +82,13 @@ namespace SynQPanel.Models
         public override SensorType SensorType
         {
             get { return _sensorType; }
-            set { SetProperty(ref _sensorType, value); }
+            set 
+            {
+                SetProperty(ref _sensorType, value);
+                OnPropertyChanged(nameof(IsAddOn)); // <--- TELLS THE ICON TO UPDATE!
+
+            }
+
         }
 
         // --- Visual / arc properties ---
@@ -226,6 +234,24 @@ namespace SynQPanel.Models
             }
 
             return clone;
+        }
+
+        //Icon Helper
+        public bool IsAddOn
+        {
+            get
+            {
+                if (SensorType != Enums.SensorType.Plugin || string.IsNullOrWhiteSpace(PluginSensorId))
+                    return false;
+
+                var addOnReadings = SynQPanel.Monitors.PluginMonitor.GetOrderedList();
+                if (addOnReadings != null)
+                {
+                    return addOnReadings.Any(r => string.Equals(r.Id, PluginSensorId, StringComparison.OrdinalIgnoreCase));
+                }
+
+                return false;
+            }
         }
     }
 }

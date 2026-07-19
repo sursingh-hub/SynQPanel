@@ -1,7 +1,8 @@
 ﻿using CommunityToolkit.Mvvm.ComponentModel;
-using System;
-using System.Windows;
 using SynQPanel.Enums;
+using System;
+using System.Linq;
+using System.Windows;
 
 namespace SynQPanel.Models
 {
@@ -19,7 +20,7 @@ namespace SynQPanel.Models
         }
 
 
-      
+
 
 
         private Enums.SensorType _sensorType = Enums.SensorType.Plugin;
@@ -29,8 +30,10 @@ namespace SynQPanel.Models
             set
             {
                 SetProperty(ref _sensorType, value);
+                OnPropertyChanged(nameof(IsAddOn)); // <--- TELLS THE ICON TO UPDATE!
             }
         }
+
 
         private UInt32 _id;
         public UInt32 Id
@@ -74,9 +77,11 @@ namespace SynQPanel.Models
                 {
                     _pluginSensorId = value;
                     OnPropertyChanged(nameof(PluginSensorId)); // ensures UI updates!
+                    OnPropertyChanged(nameof(IsAddOn));        // TELLS THE ICON TO UPDATE!
                 }
             }
         }
+
 
         public SensorValueType _valueType = SensorValueType.NOW;
         public SensorValueType ValueType
@@ -532,6 +537,35 @@ namespace SynQPanel.Models
 
             return value;
         }
+
+        // ICON HELPER
+
+        private bool? _isAddOn;
+
+        public bool IsAddOn
+        {
+            get
+            {
+                // 1. Not a Plugin, or empty ID? Definitely not an Add-on.
+                if (SensorType != Enums.SensorType.Plugin || string.IsNullOrWhiteSpace(PluginSensorId))
+                    return false;
+
+                // 2. Check the live PluginMonitor list
+                var addOnReadings = SynQPanel.Monitors.PluginMonitor.GetOrderedList();
+                if (addOnReadings != null)
+                {
+                    // If the ID exists in your Add-ons, return true!
+                    return addOnReadings.Any(r => string.Equals(r.Id, PluginSensorId, StringComparison.OrdinalIgnoreCase));
+                }
+
+                return false;
+            }
+        }
+
+
+
+
+
 
     }
 }

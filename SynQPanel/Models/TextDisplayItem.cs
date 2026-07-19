@@ -18,10 +18,16 @@ namespace SynQPanel.Models
             {
                 if (value != null)
                 {
-                    SetProperty(ref _font, value);
+                    // 1. Clean the AIDA64 font string (e.g., "Bebas Neue Regular" -> "Bebas Neue")
+                    string cleanedFont = SynQPanel.Drawing.SkiaGraphics.ExtractBaseFamilyName(value);
+
+                    // 2. Set the property using the cleaned string
+                    SetProperty(ref _font, cleanedFont);
                 }
             }
         }
+
+
 
         [ObservableProperty]
         private string _fontStyle = string.Empty;
@@ -161,10 +167,19 @@ namespace SynQPanel.Models
             return Color;
         }
 
+        /*
         public override (string, string) EvaluateTextAndColor()
         {
             return (Name, Color);
         }
+        */
+
+        public override (string, string) EvaluateTextAndColor()
+        {
+            // ✅ Resolves the macro just for drawing
+            return (SynQPanel.Utils.SystemMacroResolver.Resolve(Name), Color);
+        }
+
 
         public override SKSize EvaluateSize()
         {
@@ -225,10 +240,22 @@ namespace SynQPanel.Models
                 return DateTime.Now.ToString(_format);
             }
         }
+
+        /*
         public override (string, string) EvaluateTextAndColor()
         {
             return (EvaluateText(), Color);
         }
+        */
+
+        public override (string, string) EvaluateTextAndColor()
+        {
+            // ✅ Resolves the macro after evaluating the sensor text
+            return (SynQPanel.Utils.SystemMacroResolver.Resolve(EvaluateText()), Color);
+        }
+
+
+
     }
 
     [Serializable]
@@ -265,9 +292,17 @@ namespace SynQPanel.Models
             }
         }
 
+        /*
         public override (string, string) EvaluateTextAndColor()
         {
             return (EvaluateText(), Color);
+        }
+        */
+
+        public override (string, string) EvaluateTextAndColor()
+        {
+            // ✅ Resolves the macro after evaluating the sensor text
+            return (SynQPanel.Utils.SystemMacroResolver.Resolve(EvaluateText()), Color);
         }
     }
 }
