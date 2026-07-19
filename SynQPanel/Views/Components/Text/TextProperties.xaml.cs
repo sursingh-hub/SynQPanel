@@ -88,17 +88,26 @@ namespace SynQPanel.Views.Components
 
             if (e.NewValue is string fontName)
             {
+                // 1. Check if the exact name exists. If not, clean it!
                 if (!control.InstalledFonts.Contains(fontName))
                 {
                     var familyName = SkiaGraphics.ExtractBaseFamilyName(fontName);
 
-                    if (!string.IsNullOrEmpty(familyName))
+                    // If we successfully cleaned it into a real font...
+                    if (!string.IsNullOrEmpty(familyName) && control.InstalledFonts.Contains(familyName))
                     {
+                        // Update the model and our local variable, but DO NOT RETURN!
                         item.Font = familyName;
+                        fontName = familyName; // <-- Update the variable so the rest of the method works!
                     }
-
-                    return;
+                    else
+                    {
+                        // If it STILL isn't a valid font after cleaning, then we abort.
+                        return;
+                    }
                 }
+
+                // 2. NOW continue exactly as before, using the cleaned fontName!
 
                 // Save current FontStyle before clearing to prevent it from being nullified
                 string savedFontStyle = item.FontStyle;
@@ -122,42 +131,28 @@ namespace SynQPanel.Views.Components
                     else if (string.IsNullOrEmpty(item.FontStyle) || !control.FontStyles.Contains(item.FontStyle))
                     {
                         string requestedFont = "";
-                        //legacy
-                        if (item.Bold)
+
+                        // Legacy AIDA64 mapping
+                        if (item.Bold) requestedFont = "Bold";
+                        if (item.Italic) requestedFont = string.IsNullOrEmpty(requestedFont) ? "Italic" : "Bold Italic";
+
+                        if (!string.IsNullOrEmpty(requestedFont) && control.FontStyles.Contains(requestedFont))
                         {
-                            requestedFont = "Bold";
+                            item.FontStyle = requestedFont;
                         }
-
-                        if (item.Italic)
+                        else
                         {
-                            if (!string.IsNullOrEmpty(requestedFont))
-                            {
-                                requestedFont += " ";
-                            }
+                            // NEW FIX: Only use "Regular" or "Normal" if the font ACTUALLY supports it.
+                            // Otherwise, default to the 0th index so we don't break the font metrics!
+                            string? defaultStyle = control.FontStyles.FirstOrDefault(s =>
+                                s.Equals("Regular", StringComparison.OrdinalIgnoreCase) ||
+                                s.Equals("Normal", StringComparison.OrdinalIgnoreCase));
 
-                            requestedFont += "Italic";
+                            item.FontStyle = defaultStyle ?? control.FontStyles[0];
                         }
-
-                        if (!string.IsNullOrEmpty(requestedFont))
-                        {
-                            if (control.FontStyles.Contains(requestedFont))
-                            {
-                                item.FontStyle = requestedFont;
-                                return;
-                            }
-                        }
-
-                        //OLD
-                        //item.FontStyle = control.FontStyles[0];
-
-                        // FIX: Prioritize Regular/Normal over index 0
-                        string? defaultStyle = control.FontStyles.FirstOrDefault(s =>
-                            s.Equals("Regular", StringComparison.OrdinalIgnoreCase) ||
-                            s.Equals("Normal", StringComparison.OrdinalIgnoreCase));
-
-                        item.FontStyle = defaultStyle ?? control.FontStyles[0];
                     }
                 }
+
             }
         }
 

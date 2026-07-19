@@ -110,6 +110,7 @@ namespace SynQPanel.Models
             set
             {
                 SetProperty(ref _sensorType, value);
+                OnPropertyChanged(nameof(IsAddOn)); // <--- TELLS THE ICON TO UPDATE!
             }
         }
 
@@ -154,10 +155,12 @@ namespace SynQPanel.Models
                 if (_pluginSensorId != value)
                 {
                     _pluginSensorId = value;
-                    OnPropertyChanged(nameof(PluginSensorId)); // ensures UI updates!
+                    OnPropertyChanged(nameof(PluginSensorId));
+                    OnPropertyChanged(nameof(IsAddOn)); // <--- ADD THIS HERE TOO!
                 }
             }
         }
+
 
         public SensorValueType _valueType = SensorValueType.NOW;
         public SensorValueType ValueType
@@ -198,6 +201,22 @@ namespace SynQPanel.Models
                 SetProperty(ref _scale, value);
             }
         }
+
+
+        private double _animationSpeed = 0;
+        // Variables for smooth animation
+        private double _visualIndex = 0;
+        private DateTime _lastUpdate = DateTime.UtcNow;
+
+        public double AnimationSpeed
+        {
+            get { return _animationSpeed; }
+            set
+            {
+                SetProperty(ref _animationSpeed, value);
+            }
+        }
+
 
         [ObservableProperty]
         private int _width = 0;
@@ -359,45 +378,6 @@ namespace SynQPanel.Models
         }
 
 
-        /*
-        public ImageDisplayItem? EvaluateImage(double interpolationDelay = 1)
-        {
-            ImageDisplayItem? result = null;
-            if (_images.Count == 1)
-            {
-                result = Images[0];
-            }
-
-            if (_images.Count > 1)
-            {
-                var sensorReading = GetValue();
-                if(sensorReading.HasValue) {
-                    var step = 100.0 / (_images.Count - 1);
-
-                    var value = sensorReading.Value.ValueNow;
-                    value = ((value - _minValue) / (_maxValue - _minValue)) * 100;
-
-                    var index = (int)(value / step);
-
-                    var intermediateIndex = Interpolate(currentImageIndex, index, interpolationDelay * 2);
-                    intermediateIndex = Math.Clamp(intermediateIndex, 0, Images.Count - 1);
-                    currentImageIndex = intermediateIndex;
-
-                    result = Images[(int)Math.Round(intermediateIndex)];
-                } else
-                {
-                    result = Images[0];
-                }
-            }
-
-            if(result != null)
-            {
-                result.Scale = _scale;
-            }
-
-            return result;
-        }
-        */
 
         public ImageDisplayItem? CurrentImage
         {
@@ -498,5 +478,146 @@ namespace SynQPanel.Models
 
             return clone;
         }
+
+        //Icon Helper
+        public bool IsAddOn
+        {
+            get
+            {
+                if (SensorType != Enums.SensorType.Plugin || string.IsNullOrWhiteSpace(PluginSensorId))
+                    return false;
+
+                var addOnReadings = SynQPanel.Monitors.PluginMonitor.GetOrderedList();
+                if (addOnReadings != null)
+                {
+                    return addOnReadings.Any(r => string.Equals(r.Id, PluginSensorId, StringComparison.OrdinalIgnoreCase));
+                }
+
+                return false;
+            }
+        }
+
+        //Smooth Helper
+        public struct GaugeRenderFrame
+        {
+            public ImageDisplayItem? BaseImage;
+            public ImageDisplayItem? OverlayImage; // Can be null if perfectly on a frame
+            public float BlendOpacity; // 0.0 to 1.0
+        }
+
+        public GaugeRenderFrame EvaluateFluidFrame()
+        {
+            // Safety check: if no images, return empty
+            if (_images == null || _images.Count == 0)
+            {
+                return new GaugeRenderFrame { BaseImage = null, OverlayImage = null, BlendOpacity = 0 };
+            }
+
+            // If there's only 1 image, we just show it
+            if (_images.Count == 1)
+            {
+                var img = _images[0];
+                img.Scale = _scale;
+                return new GaugeRenderFrame { BaseImage = img, OverlayImage = null, BlendOpacity = 0 };
+            }
+
+            // 1. Figure out exactly which frame the gauge SHOULD be on (Target)
+            double targetIndex = 0;
+            var sensorReading = GetValue();
+            if (sensorReading.HasValue)
+            {
+                double rawVal = sensorReading.Value.ValueNow;
+                double range = _maxValue - _minValue;
+                double fraction = range != 0 ? (rawVal - _minValue) / range : 0;
+                fraction = Math.Clamp(fraction, 0.0, 1.0);
+
+                targetIndex = fraction * (_images.Count - 1);
+            }
+
+            // 2. If Animation Speed is 0, snap instantly!
+            if (_animationSpeed <= 0)
+            {
+                _visualIndex = targetIndex;
+                int index = (int)Math.Round(_visualIndex);
+                index = Math.Clamp(index, 0, _images.Count - 1);
+
+                var img = _images[index];
+                img.Scale = _scale;
+                _lastUpdate = DateTime.UtcNow;
+
+                return new GaugeRenderFrame { BaseImage = img, OverlayImage = null, BlendOpacity = 0 };
+            }
+
+            // 3. Smooth Animation Math with Easing and Circular Wrapping
+            var now = DateTime.UtcNow;
+            var deltaSeconds = (now - _lastUpdate).TotalSeconds;
+            _lastUpdate = now;
+            if (deltaSeconds > 0.5) deltaSeconds = 0.5; // Lag protection
+
+            int totalImages = _images.Count;
+            double maxIndex = totalImages - 1;
+
+            // --- CIRCULAR WRAP-AROUND LOGIC ---
+            // If the distance is more than half the gauge, it means the sensor "rolled over" (e.g. 59 to 0).
+            // So we push the target up past the max so it animates forward instead of backward!
+            double distance = targetIndex - _visualIndex;
+
+            if (distance < -(maxIndex / 2.0))
+            {
+                targetIndex += totalImages; // Roll forward over the finish line
+            }
+            else if (distance > (maxIndex / 2.0))
+            {
+                targetIndex -= totalImages; // Roll backward under the start line
+            }
+
+            // Recalculate distance after wrap adjustment
+            distance = targetIndex - _visualIndex;
+
+            // --- EASE-OUT PHYSICS (Spring damping) ---
+            // Instead of linear speed, we move a percentage of the remaining distance.
+            // Higher animation speed = higher tension spring.
+            double easeFactor = 1.0 - Math.Exp(-_animationSpeed * deltaSeconds);
+
+            if (Math.Abs(distance) < 0.01)
+            {
+                _visualIndex = targetIndex; // Snap exactly when very close
+            }
+            else
+            {
+                _visualIndex += distance * easeFactor;
+            }
+
+            // --- APPLY MODULO WRAPPING FOR DRAWING ---
+            // Bring the visual index safely back into the 0-Max range
+            double drawIndex = _visualIndex % totalImages;
+            if (drawIndex < 0) drawIndex += totalImages;
+
+            // 4. Determine the SINGLE closest image (Turn off crossfading to prevent ghosting)
+            int frameIndex = (int)Math.Round(drawIndex);
+
+            // If rounding pushes it exactly to the max count (e.g. 59.6 rounds to 60), 
+            // wrap it perfectly back to 0 so it doesn't crash or stutter.
+            if (frameIndex >= totalImages)
+            {
+                frameIndex = 0;
+            }
+
+            // Final safety clamp
+            frameIndex = Math.Clamp(frameIndex, 0, _images.Count - 1);
+
+            var baseImage = _images[frameIndex];
+            baseImage.Scale = _scale;
+
+            // Return ONLY the base image. Overlay is null, so the PanelDraw switch 
+            // block will completely skip the second ghosted image!
+            return new GaugeRenderFrame
+            {
+                BaseImage = baseImage,
+                OverlayImage = null,
+                BlendOpacity = 0f
+            };
+        }
+
     }
 }

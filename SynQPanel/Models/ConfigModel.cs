@@ -21,6 +21,7 @@ using System.Xml;
 using System.Xml.Serialization;
 using Task = System.Threading.Tasks.Task;
 using Timer = System.Threading.Timer;
+using Microsoft.Extensions.Logging.Abstractions;
 
 namespace SynQPanel
 {
@@ -507,7 +508,8 @@ namespace SynQPanel
                 var config = new AutoMapper.MapperConfiguration(cfg =>
                 {
                     cfg.CreateMap<Profile, Profile>();
-                });
+                },
+                NullLoggerFactory.Instance);
 
                 var mapper = config.CreateMapper();
 

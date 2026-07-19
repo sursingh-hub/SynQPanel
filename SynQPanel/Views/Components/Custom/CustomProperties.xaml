@@ -55,45 +55,49 @@
                     Text="Max value (sensor upper bound)" />
             </StackPanel>
 
-            <StackPanel Margin="0,10,0,0">
-                <ui:NumberBox
-                    Margin="0,0,0,0"
-                    FontSize="14"
-                    MaxDecimalPlaces="0"
-                    SmallChange="1"
-                    Text="{Binding Width}"
-                    Value="{Binding Width}" />
-                <TextBlock
-                    Margin="5,0,0,0"
-                    FontSize="12"
-                    Foreground="{DynamicResource TextFillColorDisabledBrush}"
-                    Text="Width" />
-            </StackPanel>
+            <!-- Width & Height Side-by-Side -->
+            <Grid Margin="0,10,0,0">
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="*" />
+                    <ColumnDefinition Width="*" />
+                </Grid.ColumnDefinitions>
 
-            <StackPanel Grid.Column="1" Margin="0,10,0,0">
-                <ui:NumberBox
-                    Margin="0,0,0,0"
-                    FontSize="14"
-                    MaxDecimalPlaces="0"
-                    SmallChange="1"
-                    Text="{Binding Height}"
-                    Value="{Binding Height}" />
-                <TextBlock
-                    Margin="5,0,0,0"
-                    FontSize="12"
-                    Foreground="{DynamicResource TextFillColorDisabledBrush}"
-                    Text="Height" />
-            </StackPanel>
+                <StackPanel Grid.Column="0" Margin="0,0,5,0">
+                    <ui:NumberBox
+                        FontSize="14"
+                        MaxDecimalPlaces="0"
+                        SmallChange="1"
+                        Text="{Binding Width}"
+                        Value="{Binding Width}" />
+                    <TextBlock
+                        Margin="5,2,0,0"
+                        FontSize="12"
+                        Foreground="{DynamicResource TextFillColorDisabledBrush}"
+                        Text="Width" />
+                </StackPanel>
 
-            <StackPanel Grid.Row="5" Margin="0,10,0,0">
+                <StackPanel Grid.Column="1" Margin="5,0,0,0">
+                    <ui:NumberBox
+                        FontSize="14"
+                        MaxDecimalPlaces="0"
+                        SmallChange="1"
+                        Text="{Binding Height}"
+                        Value="{Binding Height}" />
+                    <TextBlock
+                        Margin="5,2,0,0"
+                        FontSize="12"
+                        Foreground="{DynamicResource TextFillColorDisabledBrush}"
+                        Text="Height" />
+                </StackPanel>
+            </Grid>
+
+            <!-- Resize Scale -->
+            <StackPanel Margin="0,15,0,0">
                 <Slider
                     Name="SliderFScale"
-                    Grid.Column="1"
-                    Margin="0,0,0,0"
                     Maximum="200"
                     Minimum="5"
                     Value="{Binding Scale}" />
-
                 <Grid Margin="5,0,5,0">
                     <Grid.ColumnDefinitions>
                         <ColumnDefinition Width="*" />
@@ -101,19 +105,33 @@
                     </Grid.ColumnDefinitions>
                     <TextBlock
                         Grid.Column="0"
-                        Margin="0,0,0,0"
                         FontSize="12"
                         Foreground="{DynamicResource TextFillColorDisabledBrush}"
                         Text="Resize scale" />
                     <TextBlock
                         Grid.Column="1"
-                        Margin="0,0,0,0"
                         FontSize="12"
                         Foreground="{DynamicResource TextFillColorDisabledBrush}"
                         Text="{Binding Scale, Mode=OneWay}" />
                 </Grid>
             </StackPanel>
 
+            <!-- Smooth Animation Speed -->
+            <StackPanel Margin="0,15,0,0">
+                <ui:NumberBox
+                    FontSize="14"
+                    MaxDecimalPlaces="1"
+                    Minimum="0"
+                    SmallChange="1"
+                    Text="{Binding AnimationSpeed}"
+                    Value="{Binding AnimationSpeed}"
+                    ToolTip="0 = Instant. Higher numbers = Faster needle movement." />
+                <TextBlock
+                    Margin="5,2,0,0"
+                    FontSize="12"
+                    Foreground="{DynamicResource TextFillColorTertiaryBrush}"
+                    Text="Glide animation speed" />
+            </StackPanel>
         </StackPanel>
 
 

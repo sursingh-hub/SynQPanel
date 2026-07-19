@@ -1540,10 +1540,10 @@ namespace SynQPanel
                     var ITMX = item.GetIntValue("ITMX", 0);
                     var ITMY = item.GetIntValue("ITMY", 0);
 
-                    //var LBL = item.GetStringValue("LBL", key);
+                    var LBL = item.GetStringValue("LBL", key);
 
-                    var rawLabel = item.GetStringValue("LBL", key);
-                    var LBL = SystemMacroResolver.Resolve(rawLabel);
+                   // var rawLabel = item.GetStringValue("LBL", key);
+                    //var LBL = SystemMacroResolver.Resolve(rawLabel);
 
 
 
@@ -2017,6 +2017,7 @@ namespace SynQPanel
 
                                     bold = false;
                                     italic = false;
+                                    //rightAlign = false;
                                     FontWeight fontWeight =
                                     bold ? FontWeights.Bold : FontWeights.Normal;
 
@@ -2031,13 +2032,19 @@ namespace SynQPanel
 
                                         if (int.TryParse(LBLBIS.AsSpan(1, 1), out int _italic))
                                             italic = _italic == 1;
+
+                                        
                                     }
 
+
+                                    // Clean the AIDA font name to strip out "Regular", "Bold", etc. before checking availability
+                                    string cleanFontName = SkiaGraphics.ExtractBaseFamilyName(FNTNAM);
 
                                     // Create text item
                                     TextDisplayItem textDisplayItem = new(LBL, profile)
                                     {
-                                        Font = ChooseAvailableFont(FNTNAM),
+                                        Font = ChooseAvailableFont(cleanFontName),
+
                                         FontSize = TXTSIZ,
                                         Color = DecimalBgrToHex(VALCOL),
                                         Bold = bold,
@@ -2104,11 +2111,12 @@ namespace SynQPanel
 
                             default:
                                 {
-
                                     var SHWLBL = item.GetIntValue("SHWLBL", 0);
+                                    var SHWVAL = item.GetIntValue("SHWVAL", 0); // ✅ Read SHWVAL early
 
-
-                                    if (SHWLBL == 1)
+                                    // ✅ SURGICAL FIX: Only create a standalone text label if it's NOT a sensor.
+                                    // If it is a sensor, the SensorDisplayItem below will draw the label itself.
+                                    if (SHWLBL == 1 && !(simple || SHWVAL == 1))
                                     {
                                         var LBLBIS = item.GetStringValue("LBLBIS", string.Empty);
 
@@ -2141,8 +2149,7 @@ namespace SynQPanel
                                         displayItems.Add(label);
                                     }
 
-
-                                    var SHWVAL = item.GetIntValue("SHWVAL", 0);
+                                    // var SHWVAL = item.GetIntValue("SHWVAL", 0); <-- Removed from here (moved to top)
 
                                     if (simple || SHWVAL == 1)   // DONE DIRECT MAPPING FOR AIDA
                                     {
@@ -2308,6 +2315,8 @@ namespace SynQPanel
                                     }
                                 }
                                 break;
+
+
                         }
                     }
                 }
