@@ -43,7 +43,7 @@
 <br>
 
 <p align="center">
-  <img src="docs/images/demo-2.gif" width="90%" alt="SynQPanel Additional Demo"/>
+  <img src="docs/images/demo-2.gif" width="90%" alt="SynQPanel Weather/Flip-Clock Demo"/>
 </p>
 
 <p align="center">
